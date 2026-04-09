@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════
 //  BACKEND MUSCU — Node.js + Express + PostgreSQL (Railway)
-//  Déploiement : Railway (nouveau service Node)
 // ═══════════════════════════════════════════════════════════
 
 const express = require('express');
@@ -18,28 +17,30 @@ const pool = new Pool({
 });
 
 // ─── MIDDLEWARES ─────────────────────────────────────────────
-app.use(cors());                      // autorise ton front à appeler l'API
+app.use(cors());
 app.use(express.json());
 
 // ─── INIT BASE DE DONNÉES ────────────────────────────────────
-// Crée la table si elle n'existe pas encore
+// DROP + CREATE pour forcer la nouvelle structure
+// Format exercices: [{nom, series: [{reps, poids}]}]
 async function initDB() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS seances (
+    DROP TABLE IF EXISTS seances;
+    CREATE TABLE seances (
       id         SERIAL PRIMARY KEY,
-      date       DATE        NOT NULL,
+      date       DATE         NOT NULL,
       nom        VARCHAR(200) NOT NULL,
-      exercices  JSONB        DEFAULT '[]',
-      notes      TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW()
+      exercices  JSONB        NOT NULL DEFAULT '[]',
+      notes      TEXT         DEFAULT '',
+      created_at TIMESTAMPTZ  DEFAULT NOW()
     );
   `);
-  console.log('✓ Table seances prête');
+  console.log('✓ Table seances recréée');
 }
 
 // ─── ROUTES ──────────────────────────────────────────────────
 
-// GET /seances  → liste toutes les séances (plus récentes en premier)
+// GET /seances
 app.get('/seances', async (req, res) => {
   try {
     const result = await pool.query(
@@ -52,15 +53,13 @@ app.get('/seances', async (req, res) => {
   }
 });
 
-// POST /seances  → enregistre une nouvelle séance
-// Body: { date, nom, exercices: [{nom, series, reps, poids}], notes }
+// POST /seances
+// Body: { date, nom, exercices: [{nom, series: [{reps, poids}]}], notes }
 app.post('/seances', async (req, res) => {
   const { date, nom, exercices = [], notes = '' } = req.body;
-
   if (!date || !nom) {
     return res.status(400).json({ error: 'date et nom sont obligatoires' });
   }
-
   try {
     const result = await pool.query(
       `INSERT INTO seances (date, nom, exercices, notes)
@@ -75,7 +74,7 @@ app.post('/seances', async (req, res) => {
   }
 });
 
-// DELETE /seances/:id  → supprime une séance
+// DELETE /seances/:id
 app.delete('/seances/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM seances WHERE id = $1', [req.params.id]);
@@ -86,10 +85,8 @@ app.delete('/seances/:id', async (req, res) => {
   }
 });
 
-// Sert les fichiers statiques (carnet.css, etc.)
+// Fichiers statiques + page principale
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Page principale
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
