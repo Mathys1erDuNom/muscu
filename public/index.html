@@ -63,44 +63,82 @@
 
   <script>
     // ─── CONFIG ───────────────────────────────────────────────
-    // Même origine : le backend sert aussi le front
     const API_URL = '';
     // ──────────────────────────────────────────────────────────
 
-    // Init date du jour
     document.getElementById('date').valueAsDate = new Date();
 
-    // ─── EXERCICES DYNAMIQUES ────────────────────────────────
-    let exoCount = 0;
+    // ─── BUILDER EXERCICES ───────────────────────────────────
 
-    function creerLigneExo() {
-      exoCount++;
+    function renumeroterSeries(seriesList) {
+      seriesList.querySelectorAll('.serie-num').forEach((el, i) => {
+        el.textContent = `Série ${i + 1}`;
+      });
+    }
+
+    function creerLigneSerie(num) {
       const div = document.createElement('div');
-      div.className = 'exo-row';
+      div.className = 'serie-row';
       div.innerHTML = `
-        <input type="text"   class="exo-nom"    placeholder="Exercice (ex: Squat)"/>
-        <input type="number" class="exo-series" placeholder="Séries" min="1"/>
-        <input type="number" class="exo-reps"   placeholder="Reps"   min="1"/>
-        <input type="number" class="exo-poids"  placeholder="kg"     min="0" step="0.5"/>
-        <button class="btn-remove" title="Supprimer">✕</button>
+        <span class="serie-num">Série ${num}</span>
+        <div class="serie-inputs">
+          <input type="number" class="serie-reps"  placeholder="Reps" min="1"/>
+          <span class="serie-sep">×</span>
+          <input type="number" class="serie-poids" placeholder="kg"   min="0" step="0.5"/>
+          <span class="serie-unit">kg</span>
+        </div>
+        <button class="btn-remove btn-serie-remove" title="Supprimer">✕</button>
       `;
-      div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
+      div.querySelector('.btn-serie-remove').addEventListener('click', () => {
+        const seriesList = div.parentElement;
+        div.remove();
+        if (seriesList) renumeroterSeries(seriesList);
+      });
       return div;
     }
 
+    function creerBlocExo() {
+      const bloc = document.createElement('div');
+      bloc.className = 'exo-bloc';
+      bloc.innerHTML = `
+        <div class="exo-bloc-header">
+          <input type="text" class="exo-nom" placeholder="Nom de l'exercice (ex: Squat barre)"/>
+          <button class="btn-remove btn-exo-remove" title="Supprimer l'exercice">✕</button>
+        </div>
+        <div class="series-list"></div>
+        <button class="btn-add-serie">+ Série</button>
+      `;
+
+      bloc.querySelector('.btn-exo-remove').addEventListener('click', () => bloc.remove());
+
+      const seriesList = bloc.querySelector('.series-list');
+
+      bloc.querySelector('.btn-add-serie').addEventListener('click', () => {
+        const num = seriesList.querySelectorAll('.serie-row').length + 1;
+        seriesList.appendChild(creerLigneSerie(num));
+      });
+
+      // 3 séries par défaut
+      seriesList.appendChild(creerLigneSerie(1));
+      seriesList.appendChild(creerLigneSerie(2));
+      seriesList.appendChild(creerLigneSerie(3));
+
+      return bloc;
+    }
+
     document.getElementById('ajouter-exo').addEventListener('click', () => {
-      document.getElementById('exercices-list').appendChild(creerLigneExo());
+      document.getElementById('exercices-list').appendChild(creerBlocExo());
     });
 
-    // Ajoute une ligne par défaut
-    document.getElementById('exercices-list').appendChild(creerLigneExo());
+    // Exercice par défaut au chargement
+    document.getElementById('exercices-list').appendChild(creerBlocExo());
 
     // ─── SAUVEGARDER ─────────────────────────────────────────
     document.getElementById('sauvegarder').addEventListener('click', async () => {
-      const date      = document.getElementById('date').value;
-      const nom       = document.getElementById('nom-seance').value.trim();
-      const notes     = document.getElementById('notes').value.trim();
-      const statusEl  = document.getElementById('status-msg');
+      const date     = document.getElementById('date').value;
+      const nom      = document.getElementById('nom-seance').value.trim();
+      const notes    = document.getElementById('notes').value.trim();
+      const statusEl = document.getElementById('status-msg');
 
       if (!date || !nom) {
         statusEl.textContent = '⚠ Remplis la date et le nom de la séance.';
@@ -109,16 +147,22 @@
       }
 
       const exercices = [];
-      document.querySelectorAll('.exo-row').forEach(row => {
-        const n = row.querySelector('.exo-nom').value.trim();
-        const s = row.querySelector('.exo-series').value;
-        const r = row.querySelector('.exo-reps').value;
-        const p = row.querySelector('.exo-poids').value;
-        if (n) exercices.push({ nom: n, series: +s || null, reps: +r || null, poids: +p || null });
+      document.querySelectorAll('.exo-bloc').forEach(bloc => {
+        const nomExo = bloc.querySelector('.exo-nom').value.trim();
+        if (!nomExo) return;
+        const series = [];
+        bloc.querySelectorAll('.serie-row').forEach(row => {
+          const reps  = row.querySelector('.serie-reps').value;
+          const poids = row.querySelector('.serie-poids').value;
+          series.push({
+            reps:  reps  ? +reps  : null,
+            poids: poids ? +poids : null
+          });
+        });
+        exercices.push({ nom: nomExo, series });
       });
 
       const payload = { date, nom, notes, exercices };
-
       statusEl.textContent = 'Enregistrement…';
       statusEl.className = '';
 
@@ -128,23 +172,23 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error('Erreur serveur');
+        if (!res.ok) throw new Error();
         statusEl.textContent = '✓ Séance enregistrée !';
         statusEl.className = 'msg-ok';
-        // Reset form
         document.getElementById('nom-seance').value = '';
         document.getElementById('notes').value = '';
-        document.getElementById('exercices-list').innerHTML = '';
-        document.getElementById('exercices-list').appendChild(creerLigneExo());
         document.getElementById('date').valueAsDate = new Date();
+        const list = document.getElementById('exercices-list');
+        list.innerHTML = '';
+        list.appendChild(creerBlocExo());
         chargerHistorique();
       } catch (e) {
-        statusEl.textContent = '✗ Impossible de contacter le serveur. Vérifie l\'URL API.';
+        statusEl.textContent = '✗ Impossible de contacter le serveur.';
         statusEl.className = 'msg-error';
       }
     });
 
-    // ─── CHARGER HISTORIQUE ──────────────────────────────────
+    // ─── HISTORIQUE ──────────────────────────────────────────
     async function chargerHistorique() {
       const container = document.getElementById('historique-list');
       try {
@@ -165,16 +209,22 @@
               <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
             </div>
             ${s.exercices && s.exercices.length ? `
-              <div class="seance-exos">
+              <div class="hist-exercices">
                 ${s.exercices.map(e => `
-                  <span class="pill">${e.nom}${e.series ? ` · ${e.series}×${e.reps || '?'}` : ''}${e.poids ? ` · ${e.poids}kg` : ''}</span>
+                  <div class="hist-exo">
+                    <div class="hist-exo-nom">${e.nom}</div>
+                    <div class="hist-series">
+                      ${(e.series || []).map((serie, i) => `
+                        <span class="hist-serie">S${i+1} · ${serie.reps ?? '?'} reps${serie.poids ? ` · ${serie.poids}kg` : ''}</span>
+                      `).join('')}
+                    </div>
+                  </div>
                 `).join('')}
               </div>` : ''}
             ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
           </div>
         `).join('');
 
-        // Boutons supprimer
         container.querySelectorAll('.btn-suppr').forEach(btn => {
           btn.addEventListener('click', async () => {
             if (!confirm('Supprimer cette séance ?')) return;
@@ -184,7 +234,7 @@
         });
 
       } catch (e) {
-        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique. Vérifie que le backend tourne.</p>';
+        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
       }
     }
 

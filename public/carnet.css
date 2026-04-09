@@ -235,3 +235,114 @@ footer {
   color: #444;
   border-top: 1px solid var(--fer);
 }
+
+/* ─── BLOC EXERCICE ──────────────────────────────────── */
+.exo-bloc {
+  background: var(--noir);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.exo-bloc-header {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.exo-bloc-header .exo-nom {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* ─── LIGNES SÉRIES ──────────────────────────────────── */
+.serie-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #1e1e1e;
+}
+.serie-row:last-child { border-bottom: none; }
+
+.serie-num {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  min-width: 52px;
+  text-transform: uppercase;
+}
+
+.serie-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.serie-inputs input {
+  width: 70px;
+  text-align: center;
+  padding: 0.45rem 0.5rem;
+}
+
+.serie-sep {
+  color: var(--doux);
+  font-size: 0.9rem;
+}
+
+.serie-unit {
+  color: var(--doux);
+  font-size: 0.8rem;
+}
+
+.btn-add-serie {
+  background: transparent;
+  border: 1px dashed #444;
+  border-radius: 3px;
+  color: var(--doux);
+  font-size: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+  margin-top: 0.6rem;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-add-serie:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── HISTORIQUE EXERCICES ───────────────────────────── */
+.hist-exercices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0.4rem;
+}
+
+.hist-exo { }
+
+.hist-exo-nom {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texte);
+  margin-bottom: 0.3rem;
+}
+
+.hist-series {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.hist-serie {
+  font-size: 0.75rem;
+  background: var(--fer);
+  color: var(--doux);
+  padding: 0.18rem 0.55rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
