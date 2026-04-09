@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nutrition</title>
+  <link rel="stylesheet" href="nutrition.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="index.html" class="back-link">← Séances</a>
+      <span class="tag">MON CARNET</span>
+      <h1>NUTRI<br><em>TION</em></h1>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- SAISIE DU JOUR -->
+    <section class="card" id="form-section">
+      <h2>Journée</h2>
+
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date"/>
+      </div>
+
+      <!-- APPORTS -->
+      <div class="section-title">Apport calorique</div>
+
+      <div class="macro-grid">
+        <div class="macro-cell">
+          <label for="calories">Calories</label>
+          <div class="macro-input-wrap">
+            <input type="number" id="calories" placeholder="0" min="0"/>
+            <span class="unit">kcal</span>
+          </div>
+        </div>
+        <div class="macro-cell">
+          <label for="proteines">Protéines</label>
+          <div class="macro-input-wrap">
+            <input type="number" id="proteines" placeholder="0" min="0" step="0.1"/>
+            <span class="unit">g</span>
+          </div>
+        </div>
+        <div class="macro-cell">
+          <label for="glucides">Glucides</label>
+          <div class="macro-input-wrap">
+            <input type="number" id="glucides" placeholder="0" min="0" step="0.1"/>
+            <span class="unit">g</span>
+          </div>
+        </div>
+        <div class="macro-cell">
+          <label for="lipides">Lipides</label>
+          <div class="macro-input-wrap">
+            <input type="number" id="lipides" placeholder="0" min="0" step="0.1"/>
+            <span class="unit">g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DÉPENSES -->
+      <div class="section-title" style="margin-top:1.4rem">Dépenses cardio</div>
+
+      <div id="cardio-list"></div>
+      <button class="btn-secondary" id="ajouter-cardio">+ Ajouter une activité</button>
+
+      <!-- BILAN LIVE -->
+      <div class="bilan" id="bilan">
+        <div class="bilan-row">
+          <span>Apport</span>
+          <span id="bilan-apport">— kcal</span>
+        </div>
+        <div class="bilan-row depense">
+          <span>Dépense cardio</span>
+          <span id="bilan-depense">— kcal</span>
+        </div>
+        <div class="bilan-sep"></div>
+        <div class="bilan-row net" id="bilan-net-row">
+          <span>Net</span>
+          <span id="bilan-net">— kcal</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:1rem">
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="2" placeholder="Remarques, repas, ressenti…"></textarea>
+      </div>
+
+      <button class="btn-primary" id="sauvegarder">Enregistrer la journée</button>
+      <p id="status-msg"></p>
+    </section>
+
+    <!-- HISTORIQUE -->
+    <section class="card">
+      <h2>Historique</h2>
+      <div id="historique-list"><p class="empty-msg">Chargement…</p></div>
+    </section>
+
+  </main>
+
+  <footer><p>© 2026 Carnet Muscu</p></footer>
+
+  <script>
+    const API_URL = '';
+
+    document.getElementById('date').valueAsDate = new Date();
+
+    // ─── BILAN LIVE ──────────────────────────────────────────
+    function majBilan() {
+      const apport  = +document.getElementById('calories').value || 0;
+      const depense = Array.from(document.querySelectorAll('.cardio-cal'))
+                           .reduce((s, el) => s + (+el.value || 0), 0);
+      const net = apport - depense;
+
+      document.getElementById('bilan-apport').textContent  = apport  ? `${apport} kcal`  : '— kcal';
+      document.getElementById('bilan-depense').textContent = depense ? `−${depense} kcal` : '— kcal';
+      document.getElementById('bilan-net').textContent     = apport  ? `${net} kcal`      : '— kcal';
+
+      const netRow = document.getElementById('bilan-net-row');
+      netRow.classList.remove('positif','negatif');
+      if (apport) netRow.classList.add(net >= 0 ? 'positif' : 'negatif');
+    }
+
+    document.getElementById('calories').addEventListener('input', majBilan);
+
+    // ─── CARDIO ──────────────────────────────────────────────
+    function creerLigneCardio() {
+      const div = document.createElement('div');
+      div.className = 'cardio-row';
+      div.innerHTML = `
+        <input type="text"   class="cardio-nom" placeholder="Activité (ex: Course, Vélo…)"/>
+        <div class="cardio-right">
+          <input type="number" class="cardio-cal" placeholder="kcal" min="0"/>
+          <span class="unit">kcal</span>
+          <button class="btn-remove" title="Supprimer">✕</button>
+        </div>
+      `;
+      div.querySelector('.btn-remove').addEventListener('click', () => { div.remove(); majBilan(); });
+      div.querySelector('.cardio-cal').addEventListener('input', majBilan);
+      return div;
+    }
+
+    document.getElementById('ajouter-cardio').addEventListener('click', () => {
+      document.getElementById('cardio-list').appendChild(creerLigneCardio());
+    });
+
+    // ─── SAUVEGARDER ─────────────────────────────────────────
+    document.getElementById('sauvegarder').addEventListener('click', async () => {
+      const date      = document.getElementById('date').value;
+      const calories  = +document.getElementById('calories').value || 0;
+      const proteines = +document.getElementById('proteines').value || 0;
+      const glucides  = +document.getElementById('glucides').value  || 0;
+      const lipides   = +document.getElementById('lipides').value   || 0;
+      const notes     = document.getElementById('notes').value.trim();
+      const statusEl  = document.getElementById('status-msg');
+
+      if (!date) {
+        statusEl.textContent = '⚠ Sélectionne une date.';
+        statusEl.className = 'msg-error';
+        return;
+      }
+
+      const cardio = [];
+      document.querySelectorAll('.cardio-row').forEach(row => {
+        const nom = row.querySelector('.cardio-nom').value.trim();
+        const cal = +row.querySelector('.cardio-cal').value || 0;
+        if (nom || cal) cardio.push({ nom, calories: cal });
+      });
+
+      const depense_totale = cardio.reduce((s, a) => s + a.calories, 0);
+      const net = calories - depense_totale;
+
+      const payload = { date, calories, proteines, glucides, lipides, cardio, depense_totale, net, notes };
+      statusEl.textContent = 'Enregistrement…';
+      statusEl.className = '';
+
+      try {
+        const res = await fetch(`${API_URL}/nutrition`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error();
+        statusEl.textContent = '✓ Journée enregistrée !';
+        statusEl.className = 'msg-ok';
+        // Reset
+        ['calories','proteines','glucides','lipides'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('notes').value = '';
+        document.getElementById('cardio-list').innerHTML = '';
+        document.getElementById('date').valueAsDate = new Date();
+        majBilan();
+        chargerHistorique();
+      } catch(e) {
+        statusEl.textContent = '✗ Impossible de contacter le serveur.';
+        statusEl.className = 'msg-error';
+      }
+    });
+
+    // ─── HISTORIQUE ──────────────────────────────────────────
+    async function chargerHistorique() {
+      const container = document.getElementById('historique-list');
+      try {
+        const res = await fetch(`${API_URL}/nutrition`);
+        if (!res.ok) throw new Error();
+        const jours = await res.json();
+
+        if (!jours.length) {
+          container.innerHTML = '<p class="empty-msg">Aucune journée enregistrée.</p>';
+          return;
+        }
+
+        container.innerHTML = jours.map(j => {
+          const netClass = j.net >= 0 ? 'net-pos' : 'net-neg';
+          return `
+          <div class="jour-item">
+            <div class="jour-header">
+              <span class="jour-date">${new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' })}</span>
+              <button class="btn-remove btn-suppr" data-id="${j.id}" title="Supprimer">✕</button>
+            </div>
+
+            <div class="macros-row">
+              <div class="macro-badge apport">
+                <span class="macro-val">${j.calories}</span>
+                <span class="macro-lbl">kcal apport</span>
+              </div>
+              <div class="macro-badge prot">
+                <span class="macro-val">${j.proteines}g</span>
+                <span class="macro-lbl">protéines</span>
+              </div>
+              <div class="macro-badge gluc">
+                <span class="macro-val">${j.glucides}g</span>
+                <span class="macro-lbl">glucides</span>
+              </div>
+              <div class="macro-badge lip">
+                <span class="macro-val">${j.lipides}g</span>
+                <span class="macro-lbl">lipides</span>
+              </div>
+            </div>
+
+            ${j.cardio && j.cardio.length ? `
+              <div class="cardio-hist">
+                ${j.cardio.map(a => `
+                  <span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>
+                `).join('')}
+              </div>` : ''}
+
+            <div class="net-line ${netClass}">
+              Net : ${j.net >= 0 ? '+' : ''}${j.net} kcal
+              ${j.depense_totale ? `<span class="depense-detail">(−${j.depense_totale} kcal dépensés)</span>` : ''}
+            </div>
+
+            ${j.notes ? `<p class="jour-notes">${j.notes}</p>` : ''}
+          </div>
+        `}).join('');
+
+        container.querySelectorAll('.btn-suppr').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Supprimer cette journée ?')) return;
+            await fetch(`${API_URL}/nutrition/${btn.dataset.id}`, { method: 'DELETE' });
+            chargerHistorique();
+          });
+        });
+
+      } catch(e) {
+        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
+      }
+    }
+
+    chargerHistorique();
+  </script>
+</body>
+</html>

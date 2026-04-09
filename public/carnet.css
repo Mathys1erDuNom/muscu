@@ -346,3 +346,16 @@ footer {
   border-radius: 2px;
   white-space: nowrap;
 }
+
+/* NAV LINK */
+.nav-link {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--doux);
+  text-decoration: none;
+  margin-top: 0.5rem;
+  transition: color 0.15s;
+}
+.nav-link:hover { color: var(--accent); }

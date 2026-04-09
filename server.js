@@ -10,20 +10,17 @@ const path    = require('path');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ─── CONNEXION POSTGRESQL ────────────────────────────────────
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// ─── MIDDLEWARES ─────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-// ─── INIT BASE DE DONNÉES ────────────────────────────────────
-// DROP + CREATE pour forcer la nouvelle structure
-// Format exercices: [{nom, series: [{reps, poids}]}]
+// ─── INIT BDD ────────────────────────────────────────────────
 async function initDB() {
+  // Table séances
   await pool.query(`
     DROP TABLE IF EXISTS seances;
     CREATE TABLE seances (
@@ -35,63 +32,90 @@ async function initDB() {
       created_at TIMESTAMPTZ  DEFAULT NOW()
     );
   `);
-  console.log('✓ Table seances recréée');
+
+  // Table nutrition
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS nutrition (
+      id              SERIAL PRIMARY KEY,
+      date            DATE         NOT NULL,
+      calories        INTEGER      DEFAULT 0,
+      proteines       NUMERIC(6,1) DEFAULT 0,
+      glucides        NUMERIC(6,1) DEFAULT 0,
+      lipides         NUMERIC(6,1) DEFAULT 0,
+      cardio          JSONB        DEFAULT '[]',
+      depense_totale  INTEGER      DEFAULT 0,
+      net             INTEGER      DEFAULT 0,
+      notes           TEXT         DEFAULT '',
+      created_at      TIMESTAMPTZ  DEFAULT NOW()
+    );
+  `);
+
+  console.log('✓ Tables prêtes');
 }
 
-// ─── ROUTES ──────────────────────────────────────────────────
+// ─── ROUTES SÉANCES ──────────────────────────────────────────
 
-// GET /seances
 app.get('/seances', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM seances ORDER BY date DESC, created_at DESC'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur base de données' });
-  }
+    const r = await pool.query('SELECT * FROM seances ORDER BY date DESC, created_at DESC');
+    res.json(r.rows);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
 });
 
-// POST /seances
-// Body: { date, nom, exercices: [{nom, series: [{reps, poids}]}], notes }
 app.post('/seances', async (req, res) => {
   const { date, nom, exercices = [], notes = '' } = req.body;
-  if (!date || !nom) {
-    return res.status(400).json({ error: 'date et nom sont obligatoires' });
-  }
+  if (!date || !nom) return res.status(400).json({ error: 'date et nom requis' });
   try {
-    const result = await pool.query(
-      `INSERT INTO seances (date, nom, exercices, notes)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
+    const r = await pool.query(
+      `INSERT INTO seances (date, nom, exercices, notes) VALUES ($1,$2,$3,$4) RETURNING *`,
       [date, nom, JSON.stringify(exercices), notes]
     );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur base de données' });
-  }
+    res.status(201).json(r.rows[0]);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
 });
 
-// DELETE /seances/:id
 app.delete('/seances/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM seances WHERE id = $1', [req.params.id]);
+    await pool.query('DELETE FROM seances WHERE id=$1', [req.params.id]);
     res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur base de données' });
-  }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
 });
 
-// Fichiers statiques + page principale
+// ─── ROUTES NUTRITION ────────────────────────────────────────
+
+app.get('/nutrition', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM nutrition ORDER BY date DESC, created_at DESC');
+    res.json(r.rows);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
+app.post('/nutrition', async (req, res) => {
+  const { date, calories=0, proteines=0, glucides=0, lipides=0,
+          cardio=[], depense_totale=0, net=0, notes='' } = req.body;
+  if (!date) return res.status(400).json({ error: 'date requise' });
+  try {
+    const r = await pool.query(
+      `INSERT INTO nutrition (date, calories, proteines, glucides, lipides, cardio, depense_totale, net, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [date, calories, proteines, glucides, lipides, JSON.stringify(cardio), depense_totale, net, notes]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
+app.delete('/nutrition/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM nutrition WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
+// ─── STATIC + PAGES ──────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-// ─── DÉMARRAGE ───────────────────────────────────────────────
+// ─── START ───────────────────────────────────────────────────
 initDB().then(() => {
-  app.listen(PORT, () => console.log(`🚀 API lancée sur le port ${PORT}`));
+  app.listen(PORT, () => console.log(`🚀 API sur le port ${PORT}`));
 });
