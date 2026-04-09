@@ -6,6 +6,7 @@
 const express = require('express');
 const { Pool } = require('pg');
 const cors    = require('cors');
+const path    = require('path');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -85,8 +86,13 @@ app.delete('/seances/:id', async (req, res) => {
   }
 });
 
-// Health check
-app.get('/', (req, res) => res.json({ status: 'ok', service: 'muscu-api' }));
+// Sert les fichiers statiques (carnet.css, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Page principale
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ─── DÉMARRAGE ───────────────────────────────────────────────
 initDB().then(() => {
