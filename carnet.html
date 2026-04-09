@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carnet Muscu</title>
+  <link rel="stylesheet" href="carnet.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="tag">MON CARNET</span>
+      <h1>SÉANCES<br><em>MUSCU</em></h1>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- FORMULAIRE NOUVELLE SÉANCE -->
+    <section class="card" id="form-section">
+      <h2>Nouvelle séance</h2>
+
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date"/>
+      </div>
+
+      <div class="form-group">
+        <label for="nom-seance">Nom de la séance</label>
+        <input type="text" id="nom-seance" placeholder="ex: Full Body A, Push, Pull…"/>
+      </div>
+
+      <div class="form-group">
+        <label>Exercices</label>
+        <div id="exercices-list"></div>
+        <button class="btn-secondary" id="ajouter-exo">+ Ajouter un exercice</button>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notes libres</label>
+        <textarea id="notes" rows="3" placeholder="Ressenti, fatigue, remarques…"></textarea>
+      </div>
+
+      <button class="btn-primary" id="sauvegarder">Enregistrer la séance</button>
+      <p id="status-msg"></p>
+    </section>
+
+    <!-- HISTORIQUE -->
+    <section class="card" id="historique-section">
+      <h2>Historique</h2>
+      <div id="historique-list">
+        <p class="empty-msg">Chargement…</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2026 Carnet Muscu</p>
+  </footer>
+
+  <script>
+    // ─── CONFIG ───────────────────────────────────────────────
+    // Remplace par l'URL de ton backend Railway une fois déployé
+    const API_URL = 'postgresql://postgres:SQWwgRsSqrdDhoezrrQwFnqjnnTgfgFX@mainline.proxy.rlwy.net:42651/railway';
+    // ──────────────────────────────────────────────────────────
+
+    // Init date du jour
+    document.getElementById('date').valueAsDate = new Date();
+
+    // ─── EXERCICES DYNAMIQUES ────────────────────────────────
+    let exoCount = 0;
+
+    function creerLigneExo() {
+      exoCount++;
+      const div = document.createElement('div');
+      div.className = 'exo-row';
+      div.innerHTML = `
+        <input type="text"   class="exo-nom"    placeholder="Exercice (ex: Squat)"/>
+        <input type="number" class="exo-series" placeholder="Séries" min="1"/>
+        <input type="number" class="exo-reps"   placeholder="Reps"   min="1"/>
+        <input type="number" class="exo-poids"  placeholder="kg"     min="0" step="0.5"/>
+        <button class="btn-remove" title="Supprimer">✕</button>
+      `;
+      div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
+      return div;
+    }
+
+    document.getElementById('ajouter-exo').addEventListener('click', () => {
+      document.getElementById('exercices-list').appendChild(creerLigneExo());
+    });
+
+    // Ajoute une ligne par défaut
+    document.getElementById('exercices-list').appendChild(creerLigneExo());
+
+    // ─── SAUVEGARDER ─────────────────────────────────────────
+    document.getElementById('sauvegarder').addEventListener('click', async () => {
+      const date      = document.getElementById('date').value;
+      const nom       = document.getElementById('nom-seance').value.trim();
+      const notes     = document.getElementById('notes').value.trim();
+      const statusEl  = document.getElementById('status-msg');
+
+      if (!date || !nom) {
+        statusEl.textContent = '⚠ Remplis la date et le nom de la séance.';
+        statusEl.className = 'msg-error';
+        return;
+      }
+
+      const exercices = [];
+      document.querySelectorAll('.exo-row').forEach(row => {
+        const n = row.querySelector('.exo-nom').value.trim();
+        const s = row.querySelector('.exo-series').value;
+        const r = row.querySelector('.exo-reps').value;
+        const p = row.querySelector('.exo-poids').value;
+        if (n) exercices.push({ nom: n, series: +s || null, reps: +r || null, poids: +p || null });
+      });
+
+      const payload = { date, nom, notes, exercices };
+
+      statusEl.textContent = 'Enregistrement…';
+      statusEl.className = '';
+
+      try {
+        const res = await fetch(`${API_URL}/seances`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('Erreur serveur');
+        statusEl.textContent = '✓ Séance enregistrée !';
+        statusEl.className = 'msg-ok';
+        // Reset form
+        document.getElementById('nom-seance').value = '';
+        document.getElementById('notes').value = '';
+        document.getElementById('exercices-list').innerHTML = '';
+        document.getElementById('exercices-list').appendChild(creerLigneExo());
+        document.getElementById('date').valueAsDate = new Date();
+        chargerHistorique();
+      } catch (e) {
+        statusEl.textContent = '✗ Impossible de contacter le serveur. Vérifie l\'URL API.';
+        statusEl.className = 'msg-error';
+      }
+    });
+
+    // ─── CHARGER HISTORIQUE ──────────────────────────────────
+    async function chargerHistorique() {
+      const container = document.getElementById('historique-list');
+      try {
+        const res = await fetch(`${API_URL}/seances`);
+        if (!res.ok) throw new Error();
+        const seances = await res.json();
+
+        if (!seances.length) {
+          container.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
+          return;
+        }
+
+        container.innerHTML = seances.map(s => `
+          <div class="seance-item">
+            <div class="seance-header">
+              <span class="seance-nom">${s.nom}</span>
+              <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })}</span>
+              <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
+            </div>
+            ${s.exercices && s.exercices.length ? `
+              <div class="seance-exos">
+                ${s.exercices.map(e => `
+                  <span class="pill">${e.nom}${e.series ? ` · ${e.series}×${e.reps || '?'}` : ''}${e.poids ? ` · ${e.poids}kg` : ''}</span>
+                `).join('')}
+              </div>` : ''}
+            ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
+          </div>
+        `).join('');
+
+        // Boutons supprimer
+        container.querySelectorAll('.btn-suppr').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Supprimer cette séance ?')) return;
+            await fetch(`${API_URL}/seances/${btn.dataset.id}`, { method: 'DELETE' });
+            chargerHistorique();
+          });
+        });
+
+      } catch (e) {
+        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique. Vérifie que le backend tourne.</p>';
+      }
+    }
+
+    chargerHistorique();
+  </script>
+</body>
+</html>
