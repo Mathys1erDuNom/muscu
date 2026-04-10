@@ -67,31 +67,34 @@
     const API_URL = '';
     // ──────────────────────────────────────────────────────────
 
-    // ─── AUTOCOMPLETE EXERCICES ──────────────────────────────
+    document.getElementById('date').valueAsDate = new Date();
+
+    // ─── MÉMOIRE EXERCICES ───────────────────────────────────
     const EXO_KEY = 'muscu_exo_names';
 
     function getExoNames() {
       try { return JSON.parse(localStorage.getItem(EXO_KEY)) || []; }
       catch { return []; }
     }
-
     function saveExoName(nom) {
       if (!nom) return;
       const list = getExoNames();
-      const nomNorm = nom.trim();
-      if (!list.includes(nomNorm)) {
-        list.push(nomNorm);
+      const n = nom.trim();
+      if (!list.includes(n)) {
+        list.push(n);
         list.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
         localStorage.setItem(EXO_KEY, JSON.stringify(list));
       }
     }
-
+    function deleteExoName(nom) {
+      const list = getExoNames().filter(n => n !== nom);
+      localStorage.setItem(EXO_KEY, JSON.stringify(list));
+    }
     function seedExoNamesFromHistory(seances) {
-      seances.forEach(s => {
-        (s.exercices || []).forEach(e => { if (e.nom) saveExoName(e.nom); });
-      });
+      seances.forEach(s => (s.exercices || []).forEach(e => { if (e.nom) saveExoName(e.nom); }));
     }
 
+    // ─── AUTOCOMPLETE ────────────────────────────────────────
     function attachAutocomplete(input) {
       const wrapper = document.createElement('div');
       wrapper.className = 'autocomplete-wrap';
@@ -104,7 +107,7 @@
 
       let activeIdx = -1;
 
-      function showSuggestions(query) {
+      function renderList(query) {
         const q = query.trim().toLowerCase();
         if (!q) { dropdown.classList.add('hidden'); return; }
         const matches = getExoNames().filter(n => n.toLowerCase().includes(q));
@@ -113,21 +116,35 @@
         activeIdx = -1;
         dropdown.innerHTML = matches.map(m => {
           const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-          const highlighted = m.replace(re, '<strong>$1</strong>');
-          return `<li data-val="${m}">${highlighted}</li>`;
+          const hl = m.replace(re, '<strong>$1</strong>');
+          return `<li data-val="${m}">
+            <span class="ac-label">${hl}</span>
+            <button class="ac-delete" data-nom="${m}" title="Supprimer de la mémoire">✕</button>
+          </li>`;
         }).join('');
         dropdown.classList.remove('hidden');
 
+        // Sélectionner une suggestion
         dropdown.querySelectorAll('li').forEach(li => {
-          li.addEventListener('mousedown', e => {
+          li.querySelector('.ac-label').addEventListener('mousedown', e => {
             e.preventDefault();
             input.value = li.dataset.val;
             dropdown.classList.add('hidden');
           });
         });
+
+        // Supprimer une suggestion de la mémoire
+        dropdown.querySelectorAll('.ac-delete').forEach(btn => {
+          btn.addEventListener('mousedown', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteExoName(btn.dataset.nom);
+            renderList(input.value);
+          });
+        });
       }
 
-      input.addEventListener('input', () => showSuggestions(input.value));
+      input.addEventListener('input', () => renderList(input.value));
 
       input.addEventListener('keydown', e => {
         const items = dropdown.querySelectorAll('li');
@@ -155,10 +172,7 @@
       });
     }
 
-    document.getElementById('date').valueAsDate = new Date();
-
     // ─── BUILDER EXERCICES ───────────────────────────────────
-
     function renumeroterSeries(seriesList) {
       seriesList.querySelectorAll('.serie-num').forEach((el, i) => {
         el.textContent = `Série ${i + 1}`;
@@ -201,18 +215,15 @@
       bloc.querySelector('.btn-exo-remove').addEventListener('click', () => bloc.remove());
 
       const seriesList = bloc.querySelector('.series-list');
-
       bloc.querySelector('.btn-add-serie').addEventListener('click', () => {
         const num = seriesList.querySelectorAll('.serie-row').length + 1;
         seriesList.appendChild(creerLigneSerie(num));
       });
 
-      // 3 séries par défaut
       seriesList.appendChild(creerLigneSerie(1));
       seriesList.appendChild(creerLigneSerie(2));
       seriesList.appendChild(creerLigneSerie(3));
 
-      // Autocomplete sur le nom de l'exercice
       attachAutocomplete(bloc.querySelector('.exo-nom'));
 
       return bloc;
@@ -222,7 +233,6 @@
       document.getElementById('exercices-list').appendChild(creerBlocExo());
     });
 
-    // Exercice par défaut au chargement
     document.getElementById('exercices-list').appendChild(creerBlocExo());
 
     // ─── SAUVEGARDER ─────────────────────────────────────────
@@ -246,15 +256,11 @@
         bloc.querySelectorAll('.serie-row').forEach(row => {
           const reps  = row.querySelector('.serie-reps').value;
           const poids = row.querySelector('.serie-poids').value;
-          series.push({
-            reps:  reps  ? +reps  : null,
-            poids: poids ? +poids : null
-          });
+          series.push({ reps: reps ? +reps : null, poids: poids ? +poids : null });
         });
         exercices.push({ nom: nomExo, series });
       });
 
-      // Mémoriser les noms d'exercices
       exercices.forEach(e => saveExoName(e.nom));
 
       const payload = { date, nom, notes, exercices };
