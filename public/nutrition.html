@@ -68,6 +68,28 @@
       <div id="cardio-list"></div>
       <button class="btn-secondary" id="ajouter-cardio">+ Ajouter une activité</button>
 
+      <!-- OBJECTIF CALORIQUE -->
+      <div class="objectif-bar" id="objectif-bar">
+        <div class="objectif-label">
+          <span>Objectif journalier</span>
+          <button class="btn-edit-objectif" id="btn-edit-objectif" title="Modifier l'objectif">✎</button>
+        </div>
+        <div class="objectif-display" id="objectif-display">
+          <span id="objectif-valeur">2000</span> kcal
+        </div>
+        <div class="objectif-edit hidden" id="objectif-edit">
+          <div class="macro-input-wrap" style="max-width:160px">
+            <input type="number" id="objectif-input" min="500" max="10000" step="50" placeholder="2000"/>
+            <span class="unit">kcal</span>
+          </div>
+          <button class="btn-secondary" id="btn-save-objectif">OK</button>
+        </div>
+        <div class="objectif-progress-wrap" id="objectif-progress-wrap">
+          <div class="objectif-progress-bar" id="objectif-progress-bar"></div>
+        </div>
+        <div class="objectif-reste" id="objectif-reste"></div>
+      </div>
+
       <!-- BILAN LIVE -->
       <div class="bilan" id="bilan">
         <div class="bilan-row">
@@ -107,6 +129,72 @@
   <script>
     const API_URL = '';
 
+    // ─── OBJECTIF ────────────────────────────────────────────
+    const OBJECTIF_KEY = 'muscu_objectif_cal';
+    let objectifCal = parseInt(localStorage.getItem(OBJECTIF_KEY)) || 2000;
+
+    function afficherObjectif() {
+      document.getElementById('objectif-valeur').textContent = objectifCal;
+      document.getElementById('objectif-input').value = objectifCal;
+      majObjectifProgress();
+    }
+
+    function majObjectifProgress() {
+      const apport = +document.getElementById('calories').value || 0;
+      const pct = objectifCal > 0 ? Math.min(apport / objectifCal * 100, 100) : 0;
+      const bar = document.getElementById('objectif-progress-bar');
+      const reste = document.getElementById('objectif-reste');
+      const wrap = document.getElementById('objectif-progress-wrap');
+
+      bar.style.width = pct + '%';
+      bar.className = 'objectif-progress-bar';
+      if (pct >= 100) bar.classList.add('over');
+      else if (pct >= 85) bar.classList.add('warn');
+
+      if (apport > 0) {
+        const diff = objectifCal - apport;
+        wrap.style.display = '';
+        if (diff > 0) {
+          reste.textContent = `Reste ${diff} kcal`;
+          reste.className = 'objectif-reste reste-ok';
+        } else {
+          reste.textContent = `Dépassement de ${Math.abs(diff)} kcal`;
+          reste.className = 'objectif-reste reste-over';
+        }
+      } else {
+        wrap.style.display = 'none';
+        reste.textContent = '';
+      }
+    }
+
+    document.getElementById('btn-edit-objectif').addEventListener('click', () => {
+      document.getElementById('objectif-display').classList.toggle('hidden');
+      document.getElementById('objectif-edit').classList.toggle('hidden');
+      document.getElementById('objectif-input').focus();
+    });
+
+    document.getElementById('btn-save-objectif').addEventListener('click', () => {
+      const val = parseInt(document.getElementById('objectif-input').value);
+      if (val >= 500 && val <= 10000) {
+        objectifCal = val;
+        localStorage.setItem(OBJECTIF_KEY, objectifCal);
+        afficherObjectif();
+      }
+      document.getElementById('objectif-display').classList.remove('hidden');
+      document.getElementById('objectif-edit').classList.add('hidden');
+    });
+
+    document.getElementById('objectif-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btn-save-objectif').click();
+      if (e.key === 'Escape') {
+        document.getElementById('objectif-display').classList.remove('hidden');
+        document.getElementById('objectif-edit').classList.add('hidden');
+      }
+    });
+
+    afficherObjectif();
+    document.getElementById('objectif-progress-wrap').style.display = 'none';
+
     document.getElementById('date').valueAsDate = new Date();
 
     // ─── BILAN LIVE ──────────────────────────────────────────
@@ -123,6 +211,8 @@
       const netRow = document.getElementById('bilan-net-row');
       netRow.classList.remove('positif','negatif');
       if (apport) netRow.classList.add(net >= 0 ? 'positif' : 'negatif');
+
+      majObjectifProgress();
     }
 
     document.getElementById('calories').addEventListener('input', majBilan);

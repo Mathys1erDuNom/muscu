@@ -392,3 +392,79 @@ footer {
   color: #444;
   border-top: 1px solid var(--fer);
 }
+
+/* OBJECTIF CALORIQUE */
+.objectif-bar {
+  background: var(--noir);
+  border: 1px solid var(--fer);
+  border-radius: 4px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.2rem;
+}
+.objectif-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--doux);
+  margin-bottom: 0.5rem;
+}
+.objectif-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 0.6rem;
+}
+.objectif-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.objectif-edit .btn-secondary {
+  margin-top: 0;
+  padding: 0.45rem 1.1rem;
+}
+.hidden { display: none !important; }
+
+.btn-edit-objectif {
+  background: transparent;
+  border: 1px solid #444;
+  color: var(--doux);
+  border-radius: 3px;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  line-height: 1;
+}
+.btn-edit-objectif:hover { border-color: var(--accent); color: var(--accent); }
+
+.objectif-progress-wrap {
+  background: var(--fer);
+  border-radius: 2px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 0.45rem;
+}
+.objectif-progress-bar {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--vert);
+  transition: width 0.3s ease, background 0.3s;
+  width: 0%;
+}
+.objectif-progress-bar.warn { background: var(--orange); }
+.objectif-progress-bar.over { background: var(--rouge); }
+
+.objectif-reste {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.reste-ok   { color: var(--vert); }
+.reste-over { color: var(--rouge); }
