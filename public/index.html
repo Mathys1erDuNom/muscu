@@ -67,6 +67,94 @@
     const API_URL = '';
     // ──────────────────────────────────────────────────────────
 
+    // ─── AUTOCOMPLETE EXERCICES ──────────────────────────────
+    const EXO_KEY = 'muscu_exo_names';
+
+    function getExoNames() {
+      try { return JSON.parse(localStorage.getItem(EXO_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveExoName(nom) {
+      if (!nom) return;
+      const list = getExoNames();
+      const nomNorm = nom.trim();
+      if (!list.includes(nomNorm)) {
+        list.push(nomNorm);
+        list.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+        localStorage.setItem(EXO_KEY, JSON.stringify(list));
+      }
+    }
+
+    function seedExoNamesFromHistory(seances) {
+      seances.forEach(s => {
+        (s.exercices || []).forEach(e => { if (e.nom) saveExoName(e.nom); });
+      });
+    }
+
+    function attachAutocomplete(input) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'autocomplete-wrap';
+      input.parentNode.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+
+      const dropdown = document.createElement('ul');
+      dropdown.className = 'autocomplete-list hidden';
+      wrapper.appendChild(dropdown);
+
+      let activeIdx = -1;
+
+      function showSuggestions(query) {
+        const q = query.trim().toLowerCase();
+        if (!q) { dropdown.classList.add('hidden'); return; }
+        const matches = getExoNames().filter(n => n.toLowerCase().includes(q));
+        if (!matches.length) { dropdown.classList.add('hidden'); return; }
+
+        activeIdx = -1;
+        dropdown.innerHTML = matches.map(m => {
+          const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+          const highlighted = m.replace(re, '<strong>$1</strong>');
+          return `<li data-val="${m}">${highlighted}</li>`;
+        }).join('');
+        dropdown.classList.remove('hidden');
+
+        dropdown.querySelectorAll('li').forEach(li => {
+          li.addEventListener('mousedown', e => {
+            e.preventDefault();
+            input.value = li.dataset.val;
+            dropdown.classList.add('hidden');
+          });
+        });
+      }
+
+      input.addEventListener('input', () => showSuggestions(input.value));
+
+      input.addEventListener('keydown', e => {
+        const items = dropdown.querySelectorAll('li');
+        if (!items.length || dropdown.classList.contains('hidden')) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIdx = (activeIdx + 1) % items.length;
+          items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIdx = (activeIdx - 1 + items.length) % items.length;
+          items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
+        } else if (e.key === 'Enter' && activeIdx >= 0) {
+          e.preventDefault();
+          input.value = items[activeIdx].dataset.val;
+          dropdown.classList.add('hidden');
+        } else if (e.key === 'Escape') {
+          dropdown.classList.add('hidden');
+        }
+      });
+
+      input.addEventListener('blur', () => {
+        setTimeout(() => dropdown.classList.add('hidden'), 150);
+        if (input.value.trim()) saveExoName(input.value.trim());
+      });
+    }
+
     document.getElementById('date').valueAsDate = new Date();
 
     // ─── BUILDER EXERCICES ───────────────────────────────────
@@ -124,6 +212,9 @@
       seriesList.appendChild(creerLigneSerie(2));
       seriesList.appendChild(creerLigneSerie(3));
 
+      // Autocomplete sur le nom de l'exercice
+      attachAutocomplete(bloc.querySelector('.exo-nom'));
+
       return bloc;
     }
 
@@ -163,6 +254,9 @@
         exercices.push({ nom: nomExo, series });
       });
 
+      // Mémoriser les noms d'exercices
+      exercices.forEach(e => saveExoName(e.nom));
+
       const payload = { date, nom, notes, exercices };
       statusEl.textContent = 'Enregistrement…';
       statusEl.className = '';
@@ -196,6 +290,7 @@
         const res = await fetch(`${API_URL}/seances`);
         if (!res.ok) throw new Error();
         const seances = await res.json();
+        seedExoNamesFromHistory(seances);
 
         if (!seances.length) {
           container.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';

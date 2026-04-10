@@ -359,3 +359,45 @@ footer {
   transition: color 0.15s;
 }
 .nav-link:hover { color: var(--accent); }
+
+/* ─── AUTOCOMPLETE ───────────────────────────────────── */
+.autocomplete-wrap {
+  position: relative;
+  flex: 1;
+}
+.autocomplete-wrap input {
+  width: 100%;
+}
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  background: var(--charbon);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  list-style: none;
+  padding: 0.3rem 0;
+  margin: 0;
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+}
+.autocomplete-list.hidden { display: none; }
+.autocomplete-list li {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--texte);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.autocomplete-list li:hover,
+.autocomplete-list li.active {
+  background: var(--fer);
+  color: var(--accent);
+}
+.autocomplete-list li strong {
+  color: var(--accent);
+  font-weight: 700;
+}
