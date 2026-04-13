@@ -69,6 +69,93 @@
 
     document.getElementById('date').valueAsDate = new Date();
 
+    // ─── CACHE HISTORIQUE ────────────────────────────────────
+    // On garde en mémoire toutes les séances pour la comparaison
+    let _cachedSeances = [];
+
+    /**
+     * Retourne les dernières perfs d'un exercice (avant la date courante)
+     * { poidsMax, repsMax, totalReps, series }
+     */
+    function getDernierePerf(nomExo) {
+      const n = nomExo.trim().toLowerCase();
+      if (!n) return null;
+      const dateActuelle = document.getElementById('date').value;
+
+      // Chercher dans toutes les séances, du plus récent au plus ancien
+      for (const seance of _cachedSeances) {
+        // Ignorer les séances de la même date (on édite peut-être ce jour)
+        if (dateActuelle && seance.date && seance.date.slice(0, 10) === dateActuelle) continue;
+        const exo = (seance.exercices || []).find(e => e.nom && e.nom.trim().toLowerCase() === n);
+        if (!exo) continue;
+        const series = (exo.series || []).filter(s => s.reps !== null || s.poids !== null);
+        if (!series.length) continue;
+        const poidsMax = Math.max(...series.map(s => s.poids ?? 0));
+        const totalReps = series.reduce((acc, s) => acc + (s.reps ?? 0), 0);
+        const nbSeries = series.length;
+        return { poidsMax, totalReps, nbSeries, series, seanceDate: seance.date };
+      }
+      return null;
+    }
+
+    /**
+     * Compare perf actuelle vs dernière perf
+     * Retourne { verdict: 'better'|'worse'|'equal'|'new', msg }
+     */
+    function comparerPerf(nomExo, bloc) {
+      const derniere = getDernierePerf(nomExo);
+      if (!derniere) return { verdict: 'new', msg: '1ère fois !' };
+
+      const seriesActuelles = Array.from(bloc.querySelectorAll('.serie-row'))
+        .map(row => ({
+          reps:  +row.querySelector('.serie-reps').value  || 0,
+          poids: +row.querySelector('.serie-poids').value || 0
+        }))
+        .filter(s => s.reps > 0 || s.poids > 0);
+
+      if (!seriesActuelles.length) return null;
+
+      const poidsMaxActuel  = Math.max(...seriesActuelles.map(s => s.poids));
+      const totalRepsActuel = seriesActuelles.reduce((a, s) => a + s.reps, 0);
+      const nbSeriesActuel  = seriesActuelles.length;
+
+      const dateStr = new Date(derniere.seanceDate).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+
+      // Règle : poids > => mieux ; même poids + plus de reps => mieux ; même poids + moins de reps => moins bien
+      if (poidsMaxActuel > derniere.poidsMax) {
+        const diff = (poidsMaxActuel - derniere.poidsMax).toFixed(1).replace(/\.0$/, '');
+        return { verdict: 'better', msg: `+${diff} kg vs ${dateStr}` };
+      }
+      if (poidsMaxActuel < derniere.poidsMax) {
+        const diff = (derniere.poidsMax - poidsMaxActuel).toFixed(1).replace(/\.0$/, '');
+        return { verdict: 'worse', msg: `−${diff} kg vs ${dateStr}` };
+      }
+      // Même poids → comparer reps
+      if (totalRepsActuel > derniere.totalReps) {
+        return { verdict: 'better', msg: `+${totalRepsActuel - derniere.totalReps} reps vs ${dateStr}` };
+      }
+      if (totalRepsActuel < derniere.totalReps) {
+        return { verdict: 'worse', msg: `−${derniere.totalReps - totalRepsActuel} reps vs ${dateStr}` };
+      }
+      return { verdict: 'equal', msg: `Même perf que ${dateStr}` };
+    }
+
+    function afficherPerfBadge(bloc, nomExo) {
+      let badge = bloc.querySelector('.perf-badge');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'perf-badge';
+        bloc.querySelector('.exo-bloc-header').after(badge);
+      }
+
+      const result = comparerPerf(nomExo, bloc);
+      if (!result) { badge.innerHTML = ''; badge.className = 'perf-badge'; return; }
+
+      const icons = { better: '↑', worse: '↓', equal: '=', new: '★' };
+      badge.className = `perf-badge perf-${result.verdict}`;
+      badge.innerHTML = `<span class="perf-icon">${icons[result.verdict]}</span><span class="perf-msg">${result.msg}</span>`;
+    }
+
     // ─── MÉMOIRE EXERCICES ───────────────────────────────────
     const EXO_KEY = 'muscu_exo_names';
 
@@ -130,6 +217,7 @@
             e.preventDefault();
             input.value = li.dataset.val;
             dropdown.classList.add('hidden');
+            afficherPerfBadge(input.closest('.exo-bloc'), li.dataset.val);
           });
         });
 
@@ -161,6 +249,7 @@
           e.preventDefault();
           input.value = items[activeIdx].dataset.val;
           dropdown.classList.add('hidden');
+          afficherPerfBadge(input.closest('.exo-bloc'), input.value);
         } else if (e.key === 'Escape') {
           dropdown.classList.add('hidden');
         }
@@ -168,7 +257,10 @@
 
       input.addEventListener('blur', () => {
         setTimeout(() => dropdown.classList.add('hidden'), 150);
-        if (input.value.trim()) saveExoName(input.value.trim());
+        if (input.value.trim()) {
+          saveExoName(input.value.trim());
+          afficherPerfBadge(input.closest('.exo-bloc'), input.value.trim());
+        }
       });
     }
 
@@ -195,7 +287,20 @@
       div.querySelector('.btn-serie-remove').addEventListener('click', () => {
         const seriesList = div.parentElement;
         div.remove();
-        if (seriesList) renumeroterSeries(seriesList);
+        if (seriesList) {
+          renumeroterSeries(seriesList);
+          const bloc = seriesList.closest('.exo-bloc');
+          const nom = bloc?.querySelector('.exo-nom')?.value?.trim();
+          if (nom) afficherPerfBadge(bloc, nom);
+        }
+      });
+      // Mettre à jour le badge quand on tape
+      div.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const bloc = div.closest('.exo-bloc');
+          const nom = bloc?.querySelector('.exo-nom')?.value?.trim();
+          if (nom) afficherPerfBadge(bloc, nom);
+        });
       });
       return div;
     }
@@ -296,6 +401,7 @@
         const res = await fetch(`${API_URL}/seances`);
         if (!res.ok) throw new Error();
         const seances = await res.json();
+        _cachedSeances = seances; // mise à jour du cache pour comparaisons
         seedExoNamesFromHistory(seances);
 
         if (!seances.length) {

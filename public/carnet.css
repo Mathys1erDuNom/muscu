@@ -360,7 +360,50 @@ footer {
 }
 .nav-link:hover { color: var(--accent); }
 
-/* ─── AUTOCOMPLETE ───────────────────────────────────── */
+/* ─── BADGE PERFORMANCE ──────────────────────────────────── */
+.perf-badge {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.6rem;
+  border: 1px solid transparent;
+}
+.perf-badge:not(:empty) { display: inline-flex; }
+
+.perf-better {
+  background: rgba(68, 255, 136, 0.1);
+  border-color: rgba(68, 255, 136, 0.35);
+  color: var(--vert);
+}
+.perf-worse {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: rgba(255, 68, 68, 0.35);
+  color: var(--rouge);
+}
+.perf-equal {
+  background: rgba(154, 149, 144, 0.1);
+  border-color: rgba(154, 149, 144, 0.3);
+  color: var(--doux);
+}
+.perf-new {
+  background: rgba(232, 255, 0, 0.08);
+  border-color: rgba(232, 255, 0, 0.25);
+  color: var(--accent);
+}
+
+.perf-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+.perf-msg {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+}
 .autocomplete-wrap {
   position: relative;
   flex: 1;
