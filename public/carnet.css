@@ -262,9 +262,10 @@ footer {
 .serie-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   padding: 0.4rem 0;
   border-bottom: 1px solid #1e1e1e;
+  flex-wrap: wrap;
 }
 .serie-row:last-child { border-bottom: none; }
 
@@ -360,50 +361,64 @@ footer {
 }
 .nav-link:hover { color: var(--accent); }
 
-/* ─── BADGE PERFORMANCE ──────────────────────────────────── */
+/* ─── BADGE "1ÈRE FOIS" au niveau du bloc ────────────────── */
 .perf-badge {
   display: none;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 3px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   margin-bottom: 0.6rem;
   border: 1px solid transparent;
 }
 .perf-badge:not(:empty) { display: inline-flex; }
-
-.perf-better {
-  background: rgba(68, 255, 136, 0.1);
-  border-color: rgba(68, 255, 136, 0.35);
-  color: var(--vert);
-}
-.perf-worse {
-  background: rgba(255, 68, 68, 0.1);
-  border-color: rgba(255, 68, 68, 0.35);
-  color: var(--rouge);
-}
-.perf-equal {
-  background: rgba(154, 149, 144, 0.1);
-  border-color: rgba(154, 149, 144, 0.3);
-  color: var(--doux);
-}
 .perf-new {
   background: rgba(232, 255, 0, 0.08);
   border-color: rgba(232, 255, 0, 0.25);
   color: var(--accent);
 }
+.perf-icon { font-size: 0.95rem; line-height: 1; }
+.perf-msg  { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; }
 
-.perf-icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-.perf-msg {
+/* ─── CHIP INLINE PAR SÉRIE ─────────────────────────────── */
+.serie-perf-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  padding: 0.22rem 0.55rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  min-width: 72px;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
 }
+.chip-better {
+  background: rgba(68, 255, 136, 0.12);
+  border-color: rgba(68, 255, 136, 0.3);
+  color: var(--vert);
+}
+.chip-worse {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: rgba(255, 68, 68, 0.3);
+  color: var(--rouge);
+}
+.chip-equal {
+  background: rgba(154, 149, 144, 0.1);
+  border-color: rgba(154, 149, 144, 0.25);
+  color: var(--doux);
+}
+.chip-extra {
+  background: rgba(77, 184, 255, 0.1);
+  border-color: rgba(77, 184, 255, 0.25);
+  color: #4db8ff;
+}
+
 .autocomplete-wrap {
   position: relative;
   flex: 1;

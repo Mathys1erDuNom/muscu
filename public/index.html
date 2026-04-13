@@ -99,61 +99,83 @@
     }
 
     /**
-     * Compare perf actuelle vs dernière perf
-     * Retourne { verdict: 'better'|'worse'|'equal'|'new', msg }
+     * Compare une série (index i) avec la série correspondante de la dernière perf
+     * Retourne { verdict, msg } ou null
      */
-    function comparerPerf(nomExo, bloc) {
+    function comparerSerie(nomExo, serieIdx, repsActuel, poidsActuel) {
       const derniere = getDernierePerf(nomExo);
-      if (!derniere) return { verdict: 'new', msg: '1ère fois !' };
-
-      const seriesActuelles = Array.from(bloc.querySelectorAll('.serie-row'))
-        .map(row => ({
-          reps:  +row.querySelector('.serie-reps').value  || 0,
-          poids: +row.querySelector('.serie-poids').value || 0
-        }))
-        .filter(s => s.reps > 0 || s.poids > 0);
-
-      if (!seriesActuelles.length) return null;
-
-      const poidsMaxActuel  = Math.max(...seriesActuelles.map(s => s.poids));
-      const totalRepsActuel = seriesActuelles.reduce((a, s) => a + s.reps, 0);
-      const nbSeriesActuel  = seriesActuelles.length;
+      if (!derniere) {
+        return serieIdx === 0 ? { verdict: 'new', msg: '1ère fois !' } : null;
+      }
 
       const dateStr = new Date(derniere.seanceDate).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+      const refSeries = derniere.series;
 
-      // Règle : poids > => mieux ; même poids + plus de reps => mieux ; même poids + moins de reps => moins bien
-      if (poidsMaxActuel > derniere.poidsMax) {
-        const diff = (poidsMaxActuel - derniere.poidsMax).toFixed(1).replace(/\.0$/, '');
-        return { verdict: 'better', msg: `+${diff} kg vs ${dateStr}` };
+      if (serieIdx >= refSeries.length) {
+        return { verdict: 'extra', msg: `Série bonus vs ${dateStr}` };
       }
-      if (poidsMaxActuel < derniere.poidsMax) {
-        const diff = (derniere.poidsMax - poidsMaxActuel).toFixed(1).replace(/\.0$/, '');
-        return { verdict: 'worse', msg: `−${diff} kg vs ${dateStr}` };
+
+      const ref = refSeries[serieIdx];
+      const refPoids = ref.poids ?? 0;
+      const refReps  = ref.reps  ?? 0;
+      const curPoids = poidsActuel ?? 0;
+      const curReps  = repsActuel  ?? 0;
+
+      if (curPoids === 0 && curReps === 0) return null;
+
+      if (curPoids > refPoids) {
+        const diff = (curPoids - refPoids).toFixed(1).replace(/\.0$/, '');
+        return { verdict: 'better', msg: `+${diff} kg` };
       }
-      // Même poids → comparer reps
-      if (totalRepsActuel > derniere.totalReps) {
-        return { verdict: 'better', msg: `+${totalRepsActuel - derniere.totalReps} reps vs ${dateStr}` };
+      if (curPoids < refPoids) {
+        const diff = (refPoids - curPoids).toFixed(1).replace(/\.0$/, '');
+        return { verdict: 'worse', msg: `−${diff} kg` };
       }
-      if (totalRepsActuel < derniere.totalReps) {
-        return { verdict: 'worse', msg: `−${derniere.totalReps - totalRepsActuel} reps vs ${dateStr}` };
-      }
-      return { verdict: 'equal', msg: `Même perf que ${dateStr}` };
+      if (curReps > refReps) return { verdict: 'better', msg: `+${curReps - refReps} reps` };
+      if (curReps < refReps) return { verdict: 'worse',  msg: `−${refReps - curReps} reps` };
+      return { verdict: 'equal', msg: `= ${dateStr}` };
     }
 
+    /** Met à jour le badge du bloc (1ère fois) + les chips inline de chaque série */
     function afficherPerfBadge(bloc, nomExo) {
-      let badge = bloc.querySelector('.perf-badge');
-      if (!badge) {
-        badge = document.createElement('div');
-        badge.className = 'perf-badge';
-        bloc.querySelector('.exo-bloc-header').after(badge);
+      // Badge bloc "1ère fois"
+      let blocBadge = bloc.querySelector('.perf-badge-bloc');
+      if (!blocBadge) {
+        blocBadge = document.createElement('div');
+        blocBadge.className = 'perf-badge perf-badge-bloc';
+        bloc.querySelector('.exo-bloc-header').after(blocBadge);
+      }
+      const derniere = getDernierePerf(nomExo);
+      if (!derniere) {
+        blocBadge.className = 'perf-badge perf-badge-bloc perf-new';
+        blocBadge.innerHTML = `<span class="perf-icon">★</span><span class="perf-msg">1ère fois !</span>`;
+      } else {
+        blocBadge.innerHTML = '';
+        blocBadge.className = 'perf-badge perf-badge-bloc';
       }
 
-      const result = comparerPerf(nomExo, bloc);
-      if (!result) { badge.innerHTML = ''; badge.className = 'perf-badge'; return; }
+      // Chip sur chaque ligne de série
+      const rows = Array.from(bloc.querySelectorAll('.serie-row'));
+      rows.forEach((row, i) => {
+        const reps  = +row.querySelector('.serie-reps').value  || 0;
+        const poids = +row.querySelector('.serie-poids').value || 0;
 
-      const icons = { better: '↑', worse: '↓', equal: '=', new: '★' };
-      badge.className = `perf-badge perf-${result.verdict}`;
-      badge.innerHTML = `<span class="perf-icon">${icons[result.verdict]}</span><span class="perf-msg">${result.msg}</span>`;
+        let chip = row.querySelector('.serie-perf-chip');
+        if (!chip) {
+          chip = document.createElement('span');
+          chip.className = 'serie-perf-chip';
+          row.querySelector('.btn-serie-remove').before(chip);
+        }
+
+        if (!derniere) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
+
+        const result = comparerSerie(nomExo, i, reps, poids);
+        if (!result) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
+
+        const icons = { better: '↑', worse: '↓', equal: '=', extra: '+' };
+        chip.className = `serie-perf-chip chip-${result.verdict}`;
+        chip.textContent = `${icons[result.verdict]} ${result.msg}`;
+      });
     }
 
     // ─── MÉMOIRE EXERCICES ───────────────────────────────────
