@@ -22,8 +22,7 @@ app.use(express.json());
 async function initDB() {
   // Table séances
   await pool.query(`
-    DROP TABLE IF EXISTS seances;
-    CREATE TABLE seances (
+    CREATE TABLE IF NOT EXISTS seances (
       id         SERIAL PRIMARY KEY,
       date       DATE         NOT NULL,
       nom        VARCHAR(200) NOT NULL,
