@@ -33,13 +33,115 @@
         <input type="text" id="nom-seance" placeholder="ex: Full Body A, Push, Pull…"/>
       </div>
 
-      <div class="form-group">
-        <label>Exercices</label>
-        <div id="exercices-list"></div>
-        <button class="btn-secondary" id="ajouter-exo">+ Ajouter un exercice</button>
+      <!-- EXERCICE 1 -->
+      <div class="exo-bloc" id="exo-1">
+        <div class="exo-bloc-header">
+          <input type="text" class="exo-nom" placeholder="Exercice 1 (ex: Squat barre)"/>
+        </div>
+        <div class="series-list">
+          <div class="serie-row">
+            <span class="serie-num">Série 1</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+          <div class="serie-row">
+            <span class="serie-num">Série 2</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+          <div class="serie-row">
+            <span class="serie-num">Série 3</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
+      <!-- EXERCICE 2 -->
+      <div class="exo-bloc" id="exo-2">
+        <div class="exo-bloc-header">
+          <input type="text" class="exo-nom" placeholder="Exercice 2"/>
+        </div>
+        <div class="series-list">
+          <div class="serie-row">
+            <span class="serie-num">Série 1</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+          <div class="serie-row">
+            <span class="serie-num">Série 2</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+          <div class="serie-row">
+            <span class="serie-num">Série 3</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCICE 3 -->
+      <div class="exo-bloc" id="exo-3">
+        <div class="exo-bloc-header">
+          <input type="text" class="exo-nom" placeholder="Exercice 3"/>
+        </div>
+        <div class="series-list">
+          <div class="serie-row">
+            <span class="serie-num">Série 1</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+          <div class="serie-row">
+            <span class="serie-num">Série 2</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+          <div class="serie-row">
+            <span class="serie-num">Série 3</span>
+            <div class="serie-inputs">
+              <input type="number" class="serie-reps" placeholder="Reps" min="1"/>
+              <span class="serie-sep">×</span>
+              <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+              <span class="serie-unit">kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 1rem;">
         <label for="notes">Notes libres</label>
         <textarea id="notes" rows="3" placeholder="Ressenti, fatigue, remarques…"></textarea>
       </div>
@@ -63,304 +165,10 @@
   </footer>
 
   <script>
-    // ─── CONFIG ───────────────────────────────────────────────
     const API_URL = '';
-    // ──────────────────────────────────────────────────────────
 
+    // Date du jour par défaut
     document.getElementById('date').valueAsDate = new Date();
-
-    // ─── CACHE HISTORIQUE ────────────────────────────────────
-    // On garde en mémoire toutes les séances pour la comparaison
-    let _cachedSeances = [];
-
-    /**
-     * Retourne les dernières perfs d'un exercice (avant la date courante)
-     * { poidsMax, repsMax, totalReps, series }
-     */
-    function getDernierePerf(nomExo) {
-      const n = nomExo.trim().toLowerCase();
-      if (!n) return null;
-      const dateActuelle = document.getElementById('date').value;
-
-      // Chercher dans toutes les séances, du plus récent au plus ancien
-      for (const seance of _cachedSeances) {
-        // Ignorer les séances de la même date (on édite peut-être ce jour)
-        if (dateActuelle && seance.date && seance.date.slice(0, 10) === dateActuelle) continue;
-        const exo = (seance.exercices || []).find(e => e.nom && e.nom.trim().toLowerCase() === n);
-        if (!exo) continue;
-        const series = (exo.series || []).filter(s => s.reps !== null || s.poids !== null);
-        if (!series.length) continue;
-        const poidsMax = Math.max(...series.map(s => s.poids ?? 0));
-        const totalReps = series.reduce((acc, s) => acc + (s.reps ?? 0), 0);
-        const nbSeries = series.length;
-        return { poidsMax, totalReps, nbSeries, series, seanceDate: seance.date };
-      }
-      return null;
-    }
-
-    /**
-     * Compare une série (index i) avec la série correspondante de la dernière perf
-     * Retourne { verdict, msg } ou null
-     */
-    function comparerSerie(nomExo, serieIdx, repsActuel, poidsActuel) {
-      const derniere = getDernierePerf(nomExo);
-      if (!derniere) {
-        return serieIdx === 0 ? { verdict: 'new', msg: '1ère fois !' } : null;
-      }
-
-      const dateStr = new Date(derniere.seanceDate).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
-      const refSeries = derniere.series;
-
-      if (serieIdx >= refSeries.length) {
-        return { verdict: 'extra', msg: `Série bonus vs ${dateStr}` };
-      }
-
-      const ref = refSeries[serieIdx];
-      const refPoids = ref.poids ?? 0;
-      const refReps  = ref.reps  ?? 0;
-      const curPoids = poidsActuel ?? 0;
-      const curReps  = repsActuel  ?? 0;
-
-      if (curPoids === 0 && curReps === 0) return null;
-
-      if (curPoids > refPoids) {
-        const diff = (curPoids - refPoids).toFixed(1).replace(/\.0$/, '');
-        return { verdict: 'better', msg: `+${diff} kg` };
-      }
-      if (curPoids < refPoids) {
-        const diff = (refPoids - curPoids).toFixed(1).replace(/\.0$/, '');
-        return { verdict: 'worse', msg: `−${diff} kg` };
-      }
-      if (curReps > refReps) return { verdict: 'better', msg: `+${curReps - refReps} reps` };
-      if (curReps < refReps) return { verdict: 'worse',  msg: `−${refReps - curReps} reps` };
-      return { verdict: 'equal', msg: `= ${dateStr}` };
-    }
-
-    /** Met à jour le badge du bloc (1ère fois) + les chips inline de chaque série */
-    function afficherPerfBadge(bloc, nomExo) {
-      // Badge bloc "1ère fois"
-      let blocBadge = bloc.querySelector('.perf-badge-bloc');
-      if (!blocBadge) {
-        blocBadge = document.createElement('div');
-        blocBadge.className = 'perf-badge perf-badge-bloc';
-        bloc.querySelector('.exo-bloc-header').after(blocBadge);
-      }
-      const derniere = getDernierePerf(nomExo);
-      if (!derniere) {
-        blocBadge.className = 'perf-badge perf-badge-bloc perf-new';
-        blocBadge.innerHTML = `<span class="perf-icon">★</span><span class="perf-msg">1ère fois !</span>`;
-      } else {
-        blocBadge.innerHTML = '';
-        blocBadge.className = 'perf-badge perf-badge-bloc';
-      }
-
-      // Chip sur chaque ligne de série
-      const rows = Array.from(bloc.querySelectorAll('.serie-row'));
-      rows.forEach((row, i) => {
-        const reps  = +row.querySelector('.serie-reps').value  || 0;
-        const poids = +row.querySelector('.serie-poids').value || 0;
-
-        let chip = row.querySelector('.serie-perf-chip');
-        if (!chip) {
-          chip = document.createElement('span');
-          chip.className = 'serie-perf-chip';
-          row.querySelector('.btn-serie-remove').before(chip);
-        }
-
-        if (!derniere) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
-
-        const result = comparerSerie(nomExo, i, reps, poids);
-        if (!result) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
-
-        const icons = { better: '↑', worse: '↓', equal: '=', extra: '+' };
-        chip.className = `serie-perf-chip chip-${result.verdict}`;
-        chip.textContent = `${icons[result.verdict]} ${result.msg}`;
-      });
-    }
-
-    // ─── MÉMOIRE EXERCICES ───────────────────────────────────
-    const EXO_KEY = 'muscu_exo_names';
-
-    function getExoNames() {
-      try { return JSON.parse(localStorage.getItem(EXO_KEY)) || []; }
-      catch { return []; }
-    }
-    function saveExoName(nom) {
-      if (!nom) return;
-      const list = getExoNames();
-      const n = nom.trim();
-      if (!list.includes(n)) {
-        list.push(n);
-        list.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
-        localStorage.setItem(EXO_KEY, JSON.stringify(list));
-      }
-    }
-    function deleteExoName(nom) {
-      const list = getExoNames().filter(n => n !== nom);
-      localStorage.setItem(EXO_KEY, JSON.stringify(list));
-    }
-    function seedExoNamesFromHistory(seances) {
-      seances.forEach(s => (s.exercices || []).forEach(e => { if (e.nom) saveExoName(e.nom); }));
-    }
-
-    // ─── AUTOCOMPLETE ────────────────────────────────────────
-    function attachAutocomplete(input) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'autocomplete-wrap';
-      input.parentNode.insertBefore(wrapper, input);
-      wrapper.appendChild(input);
-
-      const dropdown = document.createElement('ul');
-      dropdown.className = 'autocomplete-list hidden';
-      wrapper.appendChild(dropdown);
-
-      let activeIdx = -1;
-
-      function renderList(query) {
-        const q = query.trim().toLowerCase();
-        if (!q) { dropdown.classList.add('hidden'); return; }
-        const matches = getExoNames().filter(n => n.toLowerCase().includes(q));
-        if (!matches.length) { dropdown.classList.add('hidden'); return; }
-
-        activeIdx = -1;
-        dropdown.innerHTML = matches.map(m => {
-          const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-          const hl = m.replace(re, '<strong>$1</strong>');
-          return `<li data-val="${m}">
-            <span class="ac-label">${hl}</span>
-            <button class="ac-delete" data-nom="${m}" title="Supprimer de la mémoire">✕</button>
-          </li>`;
-        }).join('');
-        dropdown.classList.remove('hidden');
-
-        // Sélectionner une suggestion
-        dropdown.querySelectorAll('li').forEach(li => {
-          li.querySelector('.ac-label').addEventListener('mousedown', e => {
-            e.preventDefault();
-            input.value = li.dataset.val;
-            dropdown.classList.add('hidden');
-            afficherPerfBadge(input.closest('.exo-bloc'), li.dataset.val);
-          });
-        });
-
-        // Supprimer une suggestion de la mémoire
-        dropdown.querySelectorAll('.ac-delete').forEach(btn => {
-          btn.addEventListener('mousedown', e => {
-            e.preventDefault();
-            e.stopPropagation();
-            deleteExoName(btn.dataset.nom);
-            renderList(input.value);
-          });
-        });
-      }
-
-      input.addEventListener('input', () => renderList(input.value));
-
-      input.addEventListener('keydown', e => {
-        const items = dropdown.querySelectorAll('li');
-        if (!items.length || dropdown.classList.contains('hidden')) return;
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          activeIdx = (activeIdx + 1) % items.length;
-          items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          activeIdx = (activeIdx - 1 + items.length) % items.length;
-          items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
-        } else if (e.key === 'Enter' && activeIdx >= 0) {
-          e.preventDefault();
-          input.value = items[activeIdx].dataset.val;
-          dropdown.classList.add('hidden');
-          afficherPerfBadge(input.closest('.exo-bloc'), input.value);
-        } else if (e.key === 'Escape') {
-          dropdown.classList.add('hidden');
-        }
-      });
-
-      input.addEventListener('blur', () => {
-        setTimeout(() => dropdown.classList.add('hidden'), 150);
-        if (input.value.trim()) {
-          saveExoName(input.value.trim());
-          afficherPerfBadge(input.closest('.exo-bloc'), input.value.trim());
-        }
-      });
-    }
-
-    // ─── BUILDER EXERCICES ───────────────────────────────────
-    function renumeroterSeries(seriesList) {
-      seriesList.querySelectorAll('.serie-num').forEach((el, i) => {
-        el.textContent = `Série ${i + 1}`;
-      });
-    }
-
-    function creerLigneSerie(num) {
-      const div = document.createElement('div');
-      div.className = 'serie-row';
-      div.innerHTML = `
-        <span class="serie-num">Série ${num}</span>
-        <div class="serie-inputs">
-          <input type="number" class="serie-reps"  placeholder="Reps" min="1"/>
-          <span class="serie-sep">×</span>
-          <input type="number" class="serie-poids" placeholder="kg"   min="0" step="0.5"/>
-          <span class="serie-unit">kg</span>
-        </div>
-        <button class="btn-remove btn-serie-remove" title="Supprimer">✕</button>
-      `;
-      div.querySelector('.btn-serie-remove').addEventListener('click', () => {
-        const seriesList = div.parentElement;
-        div.remove();
-        if (seriesList) {
-          renumeroterSeries(seriesList);
-          const bloc = seriesList.closest('.exo-bloc');
-          const nom = bloc?.querySelector('.exo-nom')?.value?.trim();
-          if (nom) afficherPerfBadge(bloc, nom);
-        }
-      });
-      // Mettre à jour le badge quand on tape
-      div.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', () => {
-          const bloc = div.closest('.exo-bloc');
-          const nom = bloc?.querySelector('.exo-nom')?.value?.trim();
-          if (nom) afficherPerfBadge(bloc, nom);
-        });
-      });
-      return div;
-    }
-
-    function creerBlocExo() {
-      const bloc = document.createElement('div');
-      bloc.className = 'exo-bloc';
-      bloc.innerHTML = `
-        <div class="exo-bloc-header">
-          <input type="text" class="exo-nom" placeholder="Nom de l'exercice (ex: Squat barre)"/>
-          <button class="btn-remove btn-exo-remove" title="Supprimer l'exercice">✕</button>
-        </div>
-        <div class="series-list"></div>
-        <button class="btn-add-serie">+ Série</button>
-      `;
-
-      bloc.querySelector('.btn-exo-remove').addEventListener('click', () => bloc.remove());
-
-      const seriesList = bloc.querySelector('.series-list');
-      bloc.querySelector('.btn-add-serie').addEventListener('click', () => {
-        const num = seriesList.querySelectorAll('.serie-row').length + 1;
-        seriesList.appendChild(creerLigneSerie(num));
-      });
-
-      seriesList.appendChild(creerLigneSerie(1));
-      seriesList.appendChild(creerLigneSerie(2));
-      seriesList.appendChild(creerLigneSerie(3));
-
-      attachAutocomplete(bloc.querySelector('.exo-nom'));
-
-      return bloc;
-    }
-
-    document.getElementById('ajouter-exo').addEventListener('click', () => {
-      document.getElementById('exercices-list').appendChild(creerBlocExo());
-    });
-
-    document.getElementById('exercices-list').appendChild(creerBlocExo());
 
     // ─── SAUVEGARDER ─────────────────────────────────────────
     document.getElementById('sauvegarder').addEventListener('click', async () => {
@@ -375,6 +183,7 @@
         return;
       }
 
+      // Lire les exercices depuis les blocs HTML
       const exercices = [];
       document.querySelectorAll('.exo-bloc').forEach(bloc => {
         const nomExo = bloc.querySelector('.exo-nom').value.trim();
@@ -383,12 +192,12 @@
         bloc.querySelectorAll('.serie-row').forEach(row => {
           const reps  = row.querySelector('.serie-reps').value;
           const poids = row.querySelector('.serie-poids').value;
-          series.push({ reps: reps ? +reps : null, poids: poids ? +poids : null });
+          if (reps || poids) {
+            series.push({ reps: reps ? +reps : null, poids: poids ? +poids : null });
+          }
         });
         exercices.push({ nom: nomExo, series });
       });
-
-      exercices.forEach(e => saveExoName(e.nom));
 
       const payload = { date, nom, notes, exercices };
       statusEl.textContent = 'Enregistrement…';
@@ -403,12 +212,12 @@
         if (!res.ok) throw new Error();
         statusEl.textContent = '✓ Séance enregistrée !';
         statusEl.className = 'msg-ok';
+        // Reset du formulaire
         document.getElementById('nom-seance').value = '';
         document.getElementById('notes').value = '';
         document.getElementById('date').valueAsDate = new Date();
-        const list = document.getElementById('exercices-list');
-        list.innerHTML = '';
-        list.appendChild(creerBlocExo());
+        document.querySelectorAll('.exo-nom').forEach(i => i.value = '');
+        document.querySelectorAll('.serie-reps, .serie-poids').forEach(i => i.value = '');
         chargerHistorique();
       } catch (e) {
         statusEl.textContent = '✗ Impossible de contacter le serveur.';
@@ -423,8 +232,6 @@
         const res = await fetch(`${API_URL}/seances`);
         if (!res.ok) throw new Error();
         const seances = await res.json();
-        _cachedSeances = seances; // mise à jour du cache pour comparaisons
-        seedExoNamesFromHistory(seances);
 
         if (!seances.length) {
           container.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
