@@ -51,8 +51,18 @@
     <!-- HISTORIQUE -->
     <section class="card" id="historique-section">
       <h2>Historique</h2>
+    
+      <div class="form-group" style="display:flex; gap:10px; align-items:flex-end;">
+        <div style="flex:1">
+          <label for="hist-date">Date</label>
+          <input type="date" id="hist-date"/>
+        </div>
+        <button class="btn-primary" id="btn-voir-seance" style="margin-bottom:0">Voir</button>
+        <button class="btn-secondary" id="btn-tout-afficher">Tout</button>
+      </div>
+    
       <div id="historique-list">
-        <p class="empty-msg">Chargement…</p>
+        <p class="empty-msg">Choisissez une date pour afficher la séance correspondante.</p>
       </div>
     </section>
 
@@ -416,59 +426,100 @@
       }
     });
 
-    // ─── HISTORIQUE ──────────────────────────────────────────
-    async function chargerHistorique() {
+    // ─── HISTORIQUE ───────────────────────────────────────────
+    async function fetchSeances() {
+      const res = await fetch(`${API_URL}/seances`);
+      if (!res.ok) throw new Error();
+      const seances = await res.json();
+      _cachedSeances = seances;
+      seedExoNamesFromHistory(seances);
+      return seances;
+    }
+
+    function renderSeanceItem(s) {
+      return `
+        <div class="seance-item">
+          <div class="seance-header">
+            <span class="seance-nom">${s.nom}</span>
+            <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })}</span>
+            <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
+          </div>
+          ${s.exercices && s.exercices.length ? `
+            <div class="hist-exercices">
+              ${s.exercices.map(e => `
+                <div class="hist-exo">
+                  <div class="hist-exo-nom">${e.nom}</div>
+                  <div class="hist-series">
+                    ${(e.series || []).map((serie, i) => `
+                      <span class="hist-serie">S${i+1} · ${serie.reps ?? '?'} reps${serie.poids ? ` · ${serie.poids}kg` : ''}</span>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>` : ''}
+          ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
+        </div>
+      `;
+    }
+
+    function attachSupprListeners() {
+      document.querySelectorAll('.btn-suppr').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Supprimer cette séance ?')) return;
+          await fetch(`${API_URL}/seances/${btn.dataset.id}`, { method: 'DELETE' });
+          // Recharger la vue courante
+          const dateVal = document.getElementById('hist-date').value;
+          dateVal ? afficherParDate(dateVal) : afficherTout();
+        });
+      });
+    }
+
+    async function afficherParDate(dateVal) {
       const container = document.getElementById('historique-list');
       try {
-        const res = await fetch(`${API_URL}/seances`);
-        if (!res.ok) throw new Error();
-        const seances = await res.json();
-        _cachedSeances = seances; // mise à jour du cache pour comparaisons
-        seedExoNamesFromHistory(seances);
-
-        if (!seances.length) {
-          container.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
+        const seances = await fetchSeances();
+        const match = seances.filter(s => s.date && s.date.slice(0, 10) === dateVal);
+        if (!match.length) {
+          const dFr = new Date(dateVal).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+          container.innerHTML = `<p class="empty-msg">Aucune séance le ${dFr}.</p>`;
           return;
         }
-
-        container.innerHTML = seances.map(s => `
-          <div class="seance-item">
-            <div class="seance-header">
-              <span class="seance-nom">${s.nom}</span>
-              <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })}</span>
-              <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
-            </div>
-            ${s.exercices && s.exercices.length ? `
-              <div class="hist-exercices">
-                ${s.exercices.map(e => `
-                  <div class="hist-exo">
-                    <div class="hist-exo-nom">${e.nom}</div>
-                    <div class="hist-series">
-                      ${(e.series || []).map((serie, i) => `
-                        <span class="hist-serie">S${i+1} · ${serie.reps ?? '?'} reps${serie.poids ? ` · ${serie.poids}kg` : ''}</span>
-                      `).join('')}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>` : ''}
-            ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
-          </div>
-        `).join('');
-
-        container.querySelectorAll('.btn-suppr').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            if (!confirm('Supprimer cette séance ?')) return;
-            await fetch(`${API_URL}/seances/${btn.dataset.id}`, { method: 'DELETE' });
-            chargerHistorique();
-          });
-        });
-
-      } catch (e) {
+        container.innerHTML = match.map(renderSeanceItem).join('');
+        attachSupprListeners();
+      } catch {
         container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
       }
     }
 
-    chargerHistorique();
+    async function afficherTout() {
+      const container = document.getElementById('historique-list');
+      try {
+        const seances = await fetchSeances();
+        if (!seances.length) {
+          container.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
+          return;
+        }
+        container.innerHTML = seances.map(renderSeanceItem).join('');
+        attachSupprListeners();
+      } catch {
+        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
+      }
+    }
+
+    document.getElementById('btn-voir-seance').addEventListener('click', () => {
+      const v = document.getElementById('hist-date').value;
+      if (!v) {
+        document.getElementById('historique-list').innerHTML =
+          '<p class="empty-msg">Choisissez une date.</p>';
+        return;
+      }
+      afficherParDate(v);
+    });
+
+    document.getElementById('btn-tout-afficher').addEventListener('click', afficherTout);
+
+    // Pré-remplir le cache au chargement (sans afficher)
+    fetchSeances().catch(() => {});
   </script>
 </body>
 </html>
