@@ -62,33 +62,14 @@
         </div>
       </div>
 
-      <!-- DÉPENSES CARDIO (3 lignes statiques) -->
+      <!-- DÉPENSES -->
       <div class="section-title" style="margin-top:1.4rem">Dépenses cardio</div>
 
-      <div class="cardio-row">
-        <input type="text" class="cardio-nom" placeholder="Activité 1 (ex: Course, Vélo…)"/>
-        <div class="cardio-right">
-          <input type="number" class="cardio-cal" placeholder="kcal" min="0"/>
-          <span class="unit">kcal</span>
-        </div>
-      </div>
-      <div class="cardio-row">
-        <input type="text" class="cardio-nom" placeholder="Activité 2"/>
-        <div class="cardio-right">
-          <input type="number" class="cardio-cal" placeholder="kcal" min="0"/>
-          <span class="unit">kcal</span>
-        </div>
-      </div>
-      <div class="cardio-row">
-        <input type="text" class="cardio-nom" placeholder="Activité 3"/>
-        <div class="cardio-right">
-          <input type="number" class="cardio-cal" placeholder="kcal" min="0"/>
-          <span class="unit">kcal</span>
-        </div>
-      </div>
+      <div id="cardio-list"></div>
+      <button class="btn-secondary" id="ajouter-cardio">+ Ajouter une activité</button>
 
       <!-- OBJECTIF CALORIQUE -->
-      <div class="objectif-bar" id="objectif-bar" style="margin-top:1.4rem">
+      <div class="objectif-bar" id="objectif-bar">
         <div class="objectif-label">
           <span>Objectif journalier</span>
           <button class="btn-edit-objectif" id="btn-edit-objectif" title="Modifier l'objectif">✎</button>
@@ -103,7 +84,7 @@
           </div>
           <button class="btn-secondary" id="btn-save-objectif">OK</button>
         </div>
-        <div class="objectif-progress-wrap" id="objectif-progress-wrap" style="display:none">
+        <div class="objectif-progress-wrap" id="objectif-progress-wrap">
           <div class="objectif-progress-bar" id="objectif-progress-bar"></div>
         </div>
         <div class="objectif-reste" id="objectif-reste"></div>
@@ -148,9 +129,6 @@
   <script>
     const API_URL = '';
 
-    // Date du jour par défaut
-    document.getElementById('date').valueAsDate = new Date();
-
     // ─── OBJECTIF ────────────────────────────────────────────
     const OBJECTIF_KEY = 'muscu_objectif_cal';
     let objectifCal = parseInt(localStorage.getItem(OBJECTIF_KEY)) || 2000;
@@ -158,29 +136,34 @@
     function afficherObjectif() {
       document.getElementById('objectif-valeur').textContent = objectifCal;
       document.getElementById('objectif-input').value = objectifCal;
+      majObjectifProgress();
     }
 
     function majObjectifProgress() {
       const apport = +document.getElementById('calories').value || 0;
-      const bar    = document.getElementById('objectif-progress-bar');
-      const reste  = document.getElementById('objectif-reste');
-      const wrap   = document.getElementById('objectif-progress-wrap');
+      const pct = objectifCal > 0 ? Math.min(apport / objectifCal * 100, 100) : 0;
+      const bar = document.getElementById('objectif-progress-bar');
+      const reste = document.getElementById('objectif-reste');
+      const wrap = document.getElementById('objectif-progress-wrap');
 
-      if (!apport) { wrap.style.display = 'none'; reste.textContent = ''; return; }
-
-      const pct  = objectifCal > 0 ? Math.min(apport / objectifCal * 100, 100) : 0;
-      const diff = objectifCal - apport;
-
-      wrap.style.display = '';
       bar.style.width = pct + '%';
-      bar.className = 'objectif-progress-bar' + (pct >= 100 ? ' over' : pct >= 85 ? ' warn' : '');
+      bar.className = 'objectif-progress-bar';
+      if (pct >= 100) bar.classList.add('over');
+      else if (pct >= 85) bar.classList.add('warn');
 
-      if (diff > 0) {
-        reste.textContent = `Reste ${diff} kcal`;
-        reste.className = 'objectif-reste reste-ok';
+      if (apport > 0) {
+        const diff = objectifCal - apport;
+        wrap.style.display = '';
+        if (diff > 0) {
+          reste.textContent = `Reste ${diff} kcal`;
+          reste.className = 'objectif-reste reste-ok';
+        } else {
+          reste.textContent = `Dépassement de ${Math.abs(diff)} kcal`;
+          reste.className = 'objectif-reste reste-over';
+        }
       } else {
-        reste.textContent = `Dépassement de ${Math.abs(diff)} kcal`;
-        reste.className = 'objectif-reste reste-over';
+        wrap.style.display = 'none';
+        reste.textContent = '';
       }
     }
 
@@ -202,7 +185,7 @@
     });
 
     document.getElementById('objectif-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter')  document.getElementById('btn-save-objectif').click();
+      if (e.key === 'Enter') document.getElementById('btn-save-objectif').click();
       if (e.key === 'Escape') {
         document.getElementById('objectif-display').classList.remove('hidden');
         document.getElementById('objectif-edit').classList.add('hidden');
@@ -210,6 +193,9 @@
     });
 
     afficherObjectif();
+    document.getElementById('objectif-progress-wrap').style.display = 'none';
+
+    document.getElementById('date').valueAsDate = new Date();
 
     // ─── BILAN LIVE ──────────────────────────────────────────
     function majBilan() {
@@ -218,19 +204,39 @@
                            .reduce((s, el) => s + (+el.value || 0), 0);
       const net = apport - depense;
 
-      document.getElementById('bilan-apport').textContent  = apport  ? `${apport} kcal`   : '— kcal';
-      document.getElementById('bilan-depense').textContent = depense ? `−${depense} kcal`  : '— kcal';
-      document.getElementById('bilan-net').textContent     = apport  ? `${net} kcal`       : '— kcal';
+      document.getElementById('bilan-apport').textContent  = apport  ? `${apport} kcal`  : '— kcal';
+      document.getElementById('bilan-depense').textContent = depense ? `−${depense} kcal` : '— kcal';
+      document.getElementById('bilan-net').textContent     = apport  ? `${net} kcal`      : '— kcal';
 
       const netRow = document.getElementById('bilan-net-row');
-      netRow.classList.remove('positif', 'negatif');
+      netRow.classList.remove('positif','negatif');
       if (apport) netRow.classList.add(net >= 0 ? 'positif' : 'negatif');
 
       majObjectifProgress();
     }
 
     document.getElementById('calories').addEventListener('input', majBilan);
-    document.querySelectorAll('.cardio-cal').forEach(el => el.addEventListener('input', majBilan));
+
+    // ─── CARDIO ──────────────────────────────────────────────
+    function creerLigneCardio() {
+      const div = document.createElement('div');
+      div.className = 'cardio-row';
+      div.innerHTML = `
+        <input type="text"   class="cardio-nom" placeholder="Activité (ex: Course, Vélo…)"/>
+        <div class="cardio-right">
+          <input type="number" class="cardio-cal" placeholder="kcal" min="0"/>
+          <span class="unit">kcal</span>
+          <button class="btn-remove" title="Supprimer">✕</button>
+        </div>
+      `;
+      div.querySelector('.btn-remove').addEventListener('click', () => { div.remove(); majBilan(); });
+      div.querySelector('.cardio-cal').addEventListener('input', majBilan);
+      return div;
+    }
+
+    document.getElementById('ajouter-cardio').addEventListener('click', () => {
+      document.getElementById('cardio-list').appendChild(creerLigneCardio());
+    });
 
     // ─── SAUVEGARDER ─────────────────────────────────────────
     document.getElementById('sauvegarder').addEventListener('click', async () => {
@@ -274,8 +280,8 @@
         // Reset
         ['calories','proteines','glucides','lipides'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('notes').value = '';
+        document.getElementById('cardio-list').innerHTML = '';
         document.getElementById('date').valueAsDate = new Date();
-        document.querySelectorAll('.cardio-nom, .cardio-cal').forEach(el => el.value = '');
         majBilan();
         chargerHistorique();
       } catch(e) {
@@ -305,6 +311,7 @@
               <span class="jour-date">${new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' })}</span>
               <button class="btn-remove btn-suppr" data-id="${j.id}" title="Supprimer">✕</button>
             </div>
+
             <div class="macros-row">
               <div class="macro-badge apport">
                 <span class="macro-val">${j.calories}</span>
@@ -323,17 +330,22 @@
                 <span class="macro-lbl">lipides</span>
               </div>
             </div>
+
             ${j.cardio && j.cardio.length ? `
               <div class="cardio-hist">
-                ${j.cardio.map(a => `<span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>`).join('')}
+                ${j.cardio.map(a => `
+                  <span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>
+                `).join('')}
               </div>` : ''}
+
             <div class="net-line ${netClass}">
               Net : ${j.net >= 0 ? '+' : ''}${j.net} kcal
               ${j.depense_totale ? `<span class="depense-detail">(−${j.depense_totale} kcal dépensés)</span>` : ''}
             </div>
+
             ${j.notes ? `<p class="jour-notes">${j.notes}</p>` : ''}
-          </div>`;
-        }).join('');
+          </div>
+        `}).join('');
 
         container.querySelectorAll('.btn-suppr').forEach(btn => {
           btn.addEventListener('click', async () => {
