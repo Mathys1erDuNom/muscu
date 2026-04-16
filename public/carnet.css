@@ -485,3 +485,25 @@ footer {
   color: var(--rouge);
   background: rgba(255,68,68,0.1);
 }
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.nav-arrow {
+  padding: 6px 12px;
+  font-size: 16px;
+}
+.nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+#hist-picker {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}

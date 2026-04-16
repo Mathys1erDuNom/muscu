@@ -51,9 +51,12 @@
     <!-- HISTORIQUE -->
     <section class="card" id="historique-section">
       <h2>Historique</h2>
-      <div id="historique-list">
-        <p class="empty-msg">Chargement…</p>
+      <div class="date-nav">
+        <button class="btn-secondary nav-arrow" id="hist-prev">←</button>
+        <select id="hist-picker" style="flex:1"></select>
+        <button class="btn-secondary nav-arrow" id="hist-next">→</button>
       </div>
+      <div id="historique-detail"></div>
     </section>
 
   </main>
@@ -418,53 +421,80 @@
 
     // ─── HISTORIQUE ──────────────────────────────────────────
     async function chargerHistorique() {
-      const container = document.getElementById('historique-list');
+      const picker  = document.getElementById('hist-picker');
+      const detail  = document.getElementById('historique-detail');
+      const prevBtn = document.getElementById('hist-prev');
+      const nextBtn = document.getElementById('hist-next');
+
       try {
         const res = await fetch(`${API_URL}/seances`);
         if (!res.ok) throw new Error();
         const seances = await res.json();
-        _cachedSeances = seances; // mise à jour du cache pour comparaisons
+        _cachedSeances = seances;
         seedExoNamesFromHistory(seances);
 
         if (!seances.length) {
-          container.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
+          picker.innerHTML = '<option>Aucune séance</option>';
+          detail.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
           return;
         }
 
-        container.innerHTML = seances.map(s => `
-          <div class="seance-item">
-            <div class="seance-header">
-              <span class="seance-nom">${s.nom}</span>
-              <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })}</span>
-              <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
-            </div>
-            ${s.exercices && s.exercices.length ? `
-              <div class="hist-exercices">
-                ${s.exercices.map(e => `
-                  <div class="hist-exo">
-                    <div class="hist-exo-nom">${e.nom}</div>
-                    <div class="hist-series">
-                      ${(e.series || []).map((serie, i) => `
-                        <span class="hist-serie">S${i+1} · ${serie.reps ?? '?'} reps${serie.poids ? ` · ${serie.poids}kg` : ''}</span>
-                      `).join('')}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>` : ''}
-            ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
-          </div>
-        `).join('');
+        // Remplir le sélecteur
+        picker.innerHTML = seances.map((s, i) => {
+          const d = new Date(s.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+          return `<option value="${i}">${d} — ${s.nom}</option>`;
+        }).join('');
 
-        container.querySelectorAll('.btn-suppr').forEach(btn => {
-          btn.addEventListener('click', async () => {
+        function renderDetail(idx) {
+          picker.value = idx;
+          prevBtn.disabled = idx <= 0;
+          nextBtn.disabled = idx >= seances.length - 1;
+
+          const s = seances[idx];
+          detail.innerHTML = `
+            <div class="seance-item">
+              <div class="seance-header">
+                <span class="seance-nom">${s.nom}</span>
+                <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
+                <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
+              </div>
+              ${s.exercices?.length ? `
+                <div class="hist-exercices">
+                  ${s.exercices.map(e => `
+                    <div class="hist-exo">
+                      <div class="hist-exo-nom">${e.nom}</div>
+                      <div class="hist-series">
+                        ${(e.series || []).map((sr, i) =>
+                          `<span class="hist-serie">S${i+1} · ${sr.reps ?? '?'} reps${sr.poids ? ` · ${sr.poids}kg` : ''}</span>`
+                        ).join('')}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>` : ''}
+              ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
+            </div>
+          `;
+
+          detail.querySelector('.btn-suppr')?.addEventListener('click', async () => {
             if (!confirm('Supprimer cette séance ?')) return;
-            await fetch(`${API_URL}/seances/${btn.dataset.id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/seances/${s.id}`, { method: 'DELETE' });
             chargerHistorique();
           });
+        }
+
+        let currentIdx = 0;
+        renderDetail(0);
+
+        picker.addEventListener('change', () => {
+          currentIdx = +picker.value;
+          renderDetail(currentIdx);
         });
+        prevBtn.addEventListener('click', () => { if (currentIdx > 0) renderDetail(--currentIdx); });
+        nextBtn.addEventListener('click', () => { if (currentIdx < seances.length - 1) renderDetail(++currentIdx); });
 
       } catch (e) {
-        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
+        document.getElementById('historique-detail').innerHTML =
+          '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
       }
     }
 
