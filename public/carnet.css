@@ -507,3 +507,84 @@ footer {
   border: 1px solid #ccc;
   font-size: 14px;
 }
+
+.dernier-card {
+  background: var(--color-bg, #f7f7f5);
+  border: 1px solid #e0ddd6;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.dernier-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  gap: 8px;
+}
+
+.dernier-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #999;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.dernier-when {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e07b39; /* accent chaud */
+}
+
+.dernier-date {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.dernier-nom {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.dernier-exos {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.dernier-exo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 5px 0;
+  border-bottom: 0.5px solid #eee;
+}
+
+.dernier-exo:last-child {
+  border-bottom: none;
+}
+
+.dernier-exo-nom {
+  color: #333;
+}
+
+.dernier-exo-series {
+  color: #888;
+  font-size: 12px;
+}
+
+.dernier-notes {
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  margin-top: 6px;
+  border-left: 2px solid #e0ddd6;
+  padding-left: 8px;
+}

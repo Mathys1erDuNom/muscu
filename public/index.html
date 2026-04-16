@@ -51,6 +51,8 @@
     <!-- HISTORIQUE -->
     <section class="card" id="historique-section">
       <h2>Historique</h2>
+      <div id="dernier-entrainement"></div>
+      <hr class="dernier-sep"/>
       <div class="date-nav">
         <button class="btn-secondary nav-arrow" id="hist-prev">←</button>
         <select id="hist-picker" style="flex:1"></select>
@@ -432,6 +434,42 @@
         const seances = await res.json();
         _cachedSeances = seances;
         seedExoNamesFromHistory(seances);
+
+        // ─── DERNIER ENTRAÎNEMENT ── AJOUTE CE BLOC ───────────
+        const dernier = seances[0];
+        const joursDiff = dernier ? Math.floor(
+          (new Date().setHours(0,0,0,0) - new Date(dernier.date).setHours(0,0,0,0))
+          / (1000 * 60 * 60 * 24)
+        ) : null;
+        const labelJours = joursDiff === 0 ? "Aujourd'hui"
+          : joursDiff === 1 ? "Il y a 1 jour"
+          : `Il y a ${joursDiff} jours`;
+
+        document.getElementById('dernier-entrainement').innerHTML = dernier ? `
+          <div class="dernier-card">
+            <div class="dernier-header">
+              <div>
+                <span class="dernier-label">Dernier entraînement</span>
+                <span class="dernier-when">${labelJours}</span>
+              </div>
+              <span class="dernier-date">${new Date(dernier.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
+            </div>
+            <div class="dernier-nom">${dernier.nom}</div>
+            ${dernier.exercices?.length ? `
+              <div class="dernier-exos">
+                ${dernier.exercices.map(e => `
+                  <div class="dernier-exo">
+                    <span class="dernier-exo-nom">${e.nom}</span>
+                    <span class="dernier-exo-series">${e.series?.length ?? 0} séries${
+                      e.series?.length ? ' · ' + Math.max(...e.series.map(s => s.poids ?? 0)) + 'kg max' : ''
+                    }</span>
+                  </div>
+                `).join('')}
+              </div>` : ''}
+            ${dernier.notes ? `<p class="dernier-notes">${dernier.notes}</p>` : ''}
+          </div>
+        ` : '';
+        // ──────────────────────────────────────────────────────
 
         if (!seances.length) {
           picker.innerHTML = '<option>Aucune séance</option>';
