@@ -119,7 +119,14 @@
     <!-- HISTORIQUE -->
     <section class="card">
       <h2>Historique</h2>
-      <div id="historique-list"><p class="empty-msg">Chargement…</p></div>
+      <div id="dernier-jour"></div>
+      <hr class="dernier-sep"/>
+      <div class="date-nav">
+        <button class="btn-secondary nav-arrow" id="hist-prev">←</button>
+        <select id="hist-picker" style="flex:1"></select>
+        <button class="btn-secondary nav-arrow" id="hist-next">→</button>
+      </div>
+      <div id="historique-detail"></div>
     </section>
 
   </main>
@@ -292,71 +299,138 @@
 
     // ─── HISTORIQUE ──────────────────────────────────────────
     async function chargerHistorique() {
-      const container = document.getElementById('historique-list');
+      const picker  = document.getElementById('hist-picker');
+      const detail  = document.getElementById('historique-detail');
+      const prevBtn = document.getElementById('hist-prev');
+      const nextBtn = document.getElementById('hist-next');
+
       try {
         const res = await fetch(`${API_URL}/nutrition`);
         if (!res.ok) throw new Error();
         const jours = await res.json();
 
-        if (!jours.length) {
-          container.innerHTML = '<p class="empty-msg">Aucune journée enregistrée.</p>';
-          return;
-        }
+        // ─── DERNIER JOUR ────────────────────────────────────
+        const dernier = jours[0];
+        const joursDiff = dernier ? Math.floor(
+          (new Date().setHours(0,0,0,0) - new Date(dernier.date).setHours(0,0,0,0))
+          / (1000 * 60 * 60 * 24)
+        ) : null;
+        const labelJours = joursDiff === 0 ? "Aujourd'hui"
+          : joursDiff === 1 ? "Il y a 1 jour"
+          : `Il y a ${joursDiff} jours`;
 
-        container.innerHTML = jours.map(j => {
-          const netClass = j.net >= 0 ? 'net-pos' : 'net-neg';
-          return `
-          <div class="jour-item">
-            <div class="jour-header">
-              <span class="jour-date">${new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' })}</span>
-              <button class="btn-remove btn-suppr" data-id="${j.id}" title="Supprimer">✕</button>
+        document.getElementById('dernier-jour').innerHTML = dernier ? `
+          <div class="dernier-card">
+            <div class="dernier-header">
+              <div>
+                <span class="dernier-label">Dernière journée</span>
+                <span class="dernier-when">${labelJours}</span>
+              </div>
+              <span class="dernier-date">${new Date(dernier.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
             </div>
-
-            <div class="macros-row">
+            <div class="macros-row" style="margin-top:10px">
               <div class="macro-badge apport">
-                <span class="macro-val">${j.calories}</span>
-                <span class="macro-lbl">kcal apport</span>
+                <span class="macro-val">${dernier.calories}</span>
+                <span class="macro-lbl">kcal</span>
               </div>
               <div class="macro-badge prot">
-                <span class="macro-val">${j.proteines}g</span>
+                <span class="macro-val">${dernier.proteines}g</span>
                 <span class="macro-lbl">protéines</span>
               </div>
               <div class="macro-badge gluc">
-                <span class="macro-val">${j.glucides}g</span>
+                <span class="macro-val">${dernier.glucides}g</span>
                 <span class="macro-lbl">glucides</span>
               </div>
               <div class="macro-badge lip">
-                <span class="macro-val">${j.lipides}g</span>
+                <span class="macro-val">${dernier.lipides}g</span>
                 <span class="macro-lbl">lipides</span>
               </div>
             </div>
-
-            ${j.cardio && j.cardio.length ? `
-              <div class="cardio-hist">
-                ${j.cardio.map(a => `
-                  <span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>
-                `).join('')}
-              </div>` : ''}
-
-            <div class="net-line ${netClass}">
-              Net : ${j.net >= 0 ? '+' : ''}${j.net} kcal
-              ${j.depense_totale ? `<span class="depense-detail">(−${j.depense_totale} kcal dépensés)</span>` : ''}
+            <div class="net-line ${dernier.net >= 0 ? 'net-pos' : 'net-neg'}" style="margin-top:8px">
+              Net : ${dernier.net >= 0 ? '+' : ''}${dernier.net} kcal
+              ${dernier.depense_totale ? `<span class="depense-detail">(−${dernier.depense_totale} kcal dépensés)</span>` : ''}
             </div>
-
-            ${j.notes ? `<p class="jour-notes">${j.notes}</p>` : ''}
+            ${dernier.notes ? `<p class="dernier-notes">${dernier.notes}</p>` : ''}
           </div>
-        `}).join('');
+        ` : '';
 
-        container.querySelectorAll('.btn-suppr').forEach(btn => {
-          btn.addEventListener('click', async () => {
+        if (!jours.length) {
+          picker.innerHTML = '<option>Aucune journée</option>';
+          detail.innerHTML = '<p class="empty-msg">Aucune journée enregistrée.</p>';
+          return;
+        }
+
+        // ─── MENU SÉLECTEUR ──────────────────────────────────
+        picker.innerHTML = jours.map((j, i) => {
+          const d = new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+          return `<option value="${i}">${d} — ${j.calories} kcal</option>`;
+        }).join('');
+
+        function renderDetail(idx) {
+          picker.value = idx;
+          prevBtn.disabled = idx <= 0;
+          nextBtn.disabled = idx >= jours.length - 1;
+
+          const j = jours[idx];
+          const netClass = j.net >= 0 ? 'net-pos' : 'net-neg';
+          detail.innerHTML = `
+            <div class="jour-item">
+              <div class="jour-header">
+                <span class="jour-date">${new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' })}</span>
+                <button class="btn-remove btn-suppr" data-id="${j.id}" title="Supprimer">✕</button>
+              </div>
+              <div class="macros-row">
+                <div class="macro-badge apport">
+                  <span class="macro-val">${j.calories}</span>
+                  <span class="macro-lbl">kcal apport</span>
+                </div>
+                <div class="macro-badge prot">
+                  <span class="macro-val">${j.proteines}g</span>
+                  <span class="macro-lbl">protéines</span>
+                </div>
+                <div class="macro-badge gluc">
+                  <span class="macro-val">${j.glucides}g</span>
+                  <span class="macro-lbl">glucides</span>
+                </div>
+                <div class="macro-badge lip">
+                  <span class="macro-val">${j.lipides}g</span>
+                  <span class="macro-lbl">lipides</span>
+                </div>
+              </div>
+              ${j.cardio?.length ? `
+                <div class="cardio-hist">
+                  ${j.cardio.map(a => `
+                    <span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>
+                  `).join('')}
+                </div>` : ''}
+              <div class="net-line ${netClass}">
+                Net : ${j.net >= 0 ? '+' : ''}${j.net} kcal
+                ${j.depense_totale ? `<span class="depense-detail">(−${j.depense_totale} kcal dépensés)</span>` : ''}
+              </div>
+              ${j.notes ? `<p class="jour-notes">${j.notes}</p>` : ''}
+            </div>
+          `;
+
+          detail.querySelector('.btn-suppr')?.addEventListener('click', async () => {
             if (!confirm('Supprimer cette journée ?')) return;
-            await fetch(`${API_URL}/nutrition/${btn.dataset.id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/nutrition/${j.id}`, { method: 'DELETE' });
             chargerHistorique();
           });
+        }
+
+        let currentIdx = 0;
+        renderDetail(0);
+
+        picker.addEventListener('change', () => {
+          currentIdx = +picker.value;
+          renderDetail(currentIdx);
         });
+        prevBtn.addEventListener('click', () => { if (currentIdx > 0) renderDetail(--currentIdx); });
+        nextBtn.addEventListener('click', () => { if (currentIdx < jours.length - 1) renderDetail(++currentIdx); });
 
       } catch(e) {
-        container.innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
+        document.getElementById('historique-detail').innerHTML =
+          '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
       }
     }
 
