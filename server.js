@@ -41,12 +41,18 @@ async function initDB() {
       proteines       NUMERIC(6,1) DEFAULT 0,
       glucides        NUMERIC(6,1) DEFAULT 0,
       lipides         NUMERIC(6,1) DEFAULT 0,
+      poids           NUMERIC(5,2) DEFAULT NULL,
       cardio          JSONB        DEFAULT '[]',
       depense_totale  INTEGER      DEFAULT 0,
       net             INTEGER      DEFAULT 0,
       notes           TEXT         DEFAULT '',
       created_at      TIMESTAMPTZ  DEFAULT NOW()
     );
+  `);
+
+  // Migration : ajoute la colonne poids si la table existait déjà
+  await pool.query(`
+    ALTER TABLE nutrition ADD COLUMN IF NOT EXISTS poids NUMERIC(5,2) DEFAULT NULL;
   `);
 
   console.log('✓ Tables prêtes');
@@ -91,13 +97,13 @@ app.get('/nutrition', async (req, res) => {
 
 app.post('/nutrition', async (req, res) => {
   const { date, calories=0, proteines=0, glucides=0, lipides=0,
-          cardio=[], depense_totale=0, net=0, notes='' } = req.body;
+          poids=null, cardio=[], depense_totale=0, net=0, notes='' } = req.body;
   if (!date) return res.status(400).json({ error: 'date requise' });
   try {
     const r = await pool.query(
-      `INSERT INTO nutrition (date, calories, proteines, glucides, lipides, cardio, depense_totale, net, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [date, calories, proteines, glucides, lipides, JSON.stringify(cardio), depense_totale, net, notes]
+      `INSERT INTO nutrition (date, calories, proteines, glucides, lipides, poids, cardio, depense_totale, net, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [date, calories, proteines, glucides, lipides, poids, JSON.stringify(cardio), depense_totale, net, notes]
     );
     res.status(201).json(r.rows[0]);
   } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
