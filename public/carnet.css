@@ -645,3 +645,48 @@ footer {
   border-left: 2px solid #e0ddd6;
   padding-left: 8px;
 }
+.hist-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 0.8rem;
+}
+
+.hist-chart-bloc {
+  background: var(--noir);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+}
+
+.hist-chart-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--texte);
+  margin-bottom: 0.6rem;
+}
+
+.hist-chart-graphs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+@media (max-width: 500px) {
+  .hist-chart-graphs { grid-template-columns: 1fr; }
+}
+
+.hist-chart-label {
+  font-size: 0.72rem;
+  color: var(--doux);
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hist-chart-wrap {
+  position: relative;
+  height: 140px;
+}
