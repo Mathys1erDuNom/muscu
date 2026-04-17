@@ -9,9 +9,20 @@
 </head>
 <body>
 
+  <!-- ═══ REDIRECT SI PAS CONNECTÉ ════════════════════════ -->
+  <script>
+    // Si pas de token → retour à la page principale (qui affiche le login)
+    if (!localStorage.getItem('muscu_token')) {
+      window.location.href = 'index.html';
+    }
+  </script>
+
   <header>
     <div class="header-inner">
-      <a href="index.html" class="back-link">← Séances</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+        <a href="index.html" class="back-link">← Séances</a>
+        <span id="user-badge-nutrition" class="user-badge"></span>
+      </div>
       <span class="tag">MON CARNET</span>
       <h1>NUTRITION</h1>
     </div>
@@ -28,7 +39,6 @@
         <input type="date" id="date"/>
       </div>
 
-      <!-- AJOUTE ICI -->
       <div class="form-group poids-group">
         <label for="poids">Poids du jour</label>
         <div class="macro-input-wrap" style="max-width:160px">
@@ -143,22 +153,10 @@
       <h2>Évolution du poids</h2>
       <div id="poids-empty" class="empty-msg" style="display:none">Pas encore de données.</div>
       <div id="poids-stats" class="poids-stats" style="display:none">
-        <div class="poids-stat-item">
-          <span class="poids-stat-val" id="stat-actuel">—</span>
-          <span class="poids-stat-lbl">actuel</span>
-        </div>
-        <div class="poids-stat-item">
-          <span class="poids-stat-val" id="stat-min">—</span>
-          <span class="poids-stat-lbl">min</span>
-        </div>
-        <div class="poids-stat-item">
-          <span class="poids-stat-val" id="stat-max">—</span>
-          <span class="poids-stat-lbl">max</span>
-        </div>
-        <div class="poids-stat-item">
-          <span class="poids-stat-val" id="stat-diff">—</span>
-          <span class="poids-stat-lbl">évolution</span>
-        </div>
+        <div class="poids-stat-item"><span class="poids-stat-val" id="stat-actuel">—</span><span class="poids-stat-lbl">actuel</span></div>
+        <div class="poids-stat-item"><span class="poids-stat-val" id="stat-min">—</span><span class="poids-stat-lbl">min</span></div>
+        <div class="poids-stat-item"><span class="poids-stat-val" id="stat-max">—</span><span class="poids-stat-lbl">max</span></div>
+        <div class="poids-stat-item"><span class="poids-stat-val" id="stat-diff">—</span><span class="poids-stat-lbl">évolution</span></div>
       </div>
       <canvas id="poids-chart" style="width:100%;margin-top:1rem"></canvas>
     </section>
@@ -170,10 +168,34 @@
 
   <script>
     const API_URL = '';
+    const TOKEN_KEY    = 'muscu_token';
+    const USERNAME_KEY = 'muscu_username';
+
+    function getToken()    { return localStorage.getItem(TOKEN_KEY); }
+    function getUsername() { return localStorage.getItem(USERNAME_KEY); }
+
+    function authHeaders() {
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
+    }
+
+    function doLogout() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USERNAME_KEY);
+      window.location.href = 'index.html';
+    }
+
+    // Badge utilisateur
+    const uname = getUsername();
+    if (uname) {
+      document.getElementById('user-badge-nutrition').innerHTML =
+        `<span class="user-name">👤 ${uname}</span>
+         <button class="btn-logout" onclick="doLogout()">Déconnexion</button>`;
+    }
+
     let poidsChartInstance = null;
 
-    // ─── OBJECTIF ────────────────────────────────────────────
-    const OBJECTIF_KEY = 'muscu_objectif_cal';
+    // ─── OBJECTIF (par utilisateur) ──────────────────────────
+    const OBJECTIF_KEY = `muscu_objectif_cal_${getUsername()}`;
     let objectifCal = parseInt(localStorage.getItem(OBJECTIF_KEY)) || 2000;
 
     function afficherObjectif() {
@@ -184,10 +206,10 @@
 
     function majObjectifProgress() {
       const apport = +document.getElementById('calories').value || 0;
-      const pct = objectifCal > 0 ? Math.min(apport / objectifCal * 100, 100) : 0;
-      const bar = document.getElementById('objectif-progress-bar');
-      const reste = document.getElementById('objectif-reste');
-      const wrap = document.getElementById('objectif-progress-wrap');
+      const pct    = objectifCal > 0 ? Math.min(apport / objectifCal * 100, 100) : 0;
+      const bar    = document.getElementById('objectif-progress-bar');
+      const reste  = document.getElementById('objectif-reste');
+      const wrap   = document.getElementById('objectif-progress-wrap');
 
       bar.style.width = pct + '%';
       bar.className = 'objectif-progress-bar';
@@ -206,7 +228,7 @@
         }
       } else {
         wrap.style.display = 'none';
-        reste.textContent = '';
+        reste.textContent  = '';
       }
     }
 
@@ -228,7 +250,7 @@
     });
 
     document.getElementById('objectif-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('btn-save-objectif').click();
+      if (e.key === 'Enter')  document.getElementById('btn-save-objectif').click();
       if (e.key === 'Escape') {
         document.getElementById('objectif-display').classList.remove('hidden');
         document.getElementById('objectif-edit').classList.add('hidden');
@@ -243,18 +265,16 @@
     // ─── BILAN LIVE ──────────────────────────────────────────
     function majBilan() {
       const apport  = +document.getElementById('calories').value || 0;
-      const depense = Array.from(document.querySelectorAll('.cardio-cal'))
-                           .reduce((s, el) => s + (+el.value || 0), 0);
+      const depense = Array.from(document.querySelectorAll('.cardio-cal')).reduce((s, el) => s + (+el.value || 0), 0);
       const net = apport - depense;
 
-      document.getElementById('bilan-apport').textContent  = apport  ? `${apport} kcal`  : '— kcal';
-      document.getElementById('bilan-depense').textContent = depense ? `−${depense} kcal` : '— kcal';
-      document.getElementById('bilan-net').textContent     = apport  ? `${net} kcal`      : '— kcal';
+      document.getElementById('bilan-apport').textContent  = apport  ? `${apport} kcal`   : '— kcal';
+      document.getElementById('bilan-depense').textContent = depense ? `−${depense} kcal`  : '— kcal';
+      document.getElementById('bilan-net').textContent     = apport  ? `${net} kcal`       : '— kcal';
 
       const netRow = document.getElementById('bilan-net-row');
       netRow.classList.remove('positif','negatif');
       if (apport) netRow.classList.add(net >= 0 ? 'positif' : 'negatif');
-
       majObjectifProgress();
     }
 
@@ -284,18 +304,14 @@
     // ─── SAUVEGARDER ─────────────────────────────────────────
     document.getElementById('sauvegarder').addEventListener('click', async () => {
       const date      = document.getElementById('date').value;
-      const calories  = +document.getElementById('calories').value || 0;
+      const calories  = +document.getElementById('calories').value  || 0;
       const proteines = +document.getElementById('proteines').value || 0;
       const glucides  = +document.getElementById('glucides').value  || 0;
       const lipides   = +document.getElementById('lipides').value   || 0;
       const notes     = document.getElementById('notes').value.trim();
       const statusEl  = document.getElementById('status-msg');
 
-      if (!date) {
-        statusEl.textContent = '⚠ Sélectionne une date.';
-        statusEl.className = 'msg-error';
-        return;
-      }
+      if (!date) { statusEl.textContent = '⚠ Sélectionne une date.'; statusEl.className = 'msg-error'; return; }
 
       const cardio = [];
       document.querySelectorAll('.cardio-row').forEach(row => {
@@ -305,8 +321,7 @@
       });
 
       const depense_totale = cardio.reduce((s, a) => s + a.calories, 0);
-      const net = calories - depense_totale;
-
+      const net  = calories - depense_totale;
       const poids = +document.getElementById('poids').value || null;
       const payload = { date, calories, proteines, glucides, lipides, poids, cardio, depense_totale, net, notes };
 
@@ -316,18 +331,18 @@
       try {
         const res = await fetch(`${API_URL}/nutrition`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders(),
           body: JSON.stringify(payload)
         });
+        if (res.status === 401) { doLogout(); return; }
         if (!res.ok) throw new Error();
         statusEl.textContent = '✓ Journée enregistrée !';
         statusEl.className = 'msg-ok';
-        // Reset
         ['calories','proteines','glucides','lipides'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('notes').value = '';
+        document.getElementById('notes').value   = '';
+        document.getElementById('poids').value   = '';
         document.getElementById('cardio-list').innerHTML = '';
         document.getElementById('date').valueAsDate = new Date();
-        document.getElementById('poids').value = '';
         majBilan();
         chargerHistorique();
       } catch(e) {
@@ -344,20 +359,15 @@
       const nextBtn = document.getElementById('hist-next');
 
       try {
-        const res = await fetch(`${API_URL}/nutrition`);
+        const res = await fetch(`${API_URL}/nutrition`, { headers: authHeaders() });
+        if (res.status === 401) { doLogout(); return; }
         if (!res.ok) throw new Error();
         const jours = await res.json();
         afficherGraphiquePoids(jours);
 
-        // ─── DERNIER JOUR ────────────────────────────────────
-        const dernier = jours[0];
-        const joursDiff = dernier ? Math.floor(
-          (new Date().setHours(0,0,0,0) - new Date(dernier.date).setHours(0,0,0,0))
-          / (1000 * 60 * 60 * 24)
-        ) : null;
-        const labelJours = joursDiff === 0 ? "Aujourd'hui"
-          : joursDiff === 1 ? "Il y a 1 jour"
-          : `Il y a ${joursDiff} jours`;
+        const dernier   = jours[0];
+        const joursDiff = dernier ? Math.floor((new Date().setHours(0,0,0,0) - new Date(dernier.date).setHours(0,0,0,0)) / 86400000) : null;
+        const labelJours = joursDiff === 0 ? "Aujourd'hui" : joursDiff === 1 ? "Il y a 1 jour" : `Il y a ${joursDiff} jours`;
 
         document.getElementById('dernier-jour').innerHTML = dernier ? `
           <div class="dernier-card">
@@ -369,22 +379,10 @@
               <span class="dernier-date">${new Date(dernier.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
             </div>
             <div class="macros-row" style="margin-top:10px">
-              <div class="macro-badge apport">
-                <span class="macro-val">${dernier.calories}</span>
-                <span class="macro-lbl">kcal</span>
-              </div>
-              <div class="macro-badge prot">
-                <span class="macro-val">${dernier.proteines}g</span>
-                <span class="macro-lbl">protéines</span>
-              </div>
-              <div class="macro-badge gluc">
-                <span class="macro-val">${dernier.glucides}g</span>
-                <span class="macro-lbl">glucides</span>
-              </div>
-              <div class="macro-badge lip">
-                <span class="macro-val">${dernier.lipides}g</span>
-                <span class="macro-lbl">lipides</span>
-              </div>
+              <div class="macro-badge apport"><span class="macro-val">${dernier.calories}</span><span class="macro-lbl">kcal</span></div>
+              <div class="macro-badge prot"><span class="macro-val">${dernier.proteines}g</span><span class="macro-lbl">protéines</span></div>
+              <div class="macro-badge gluc"><span class="macro-val">${dernier.glucides}g</span><span class="macro-lbl">glucides</span></div>
+              <div class="macro-badge lip"><span class="macro-val">${dernier.lipides}g</span><span class="macro-lbl">lipides</span></div>
             </div>
             <div class="net-line ${dernier.net >= 0 ? 'net-pos' : 'net-neg'}" style="margin-top:8px">
               Net : ${dernier.net >= 0 ? '+' : ''}${dernier.net} kcal
@@ -400,7 +398,6 @@
           return;
         }
 
-        // ─── MENU SÉLECTEUR ──────────────────────────────────
         picker.innerHTML = jours.map((j, i) => {
           const d = new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
           return `<option value="${i}">${d} — ${j.calories} kcal</option>`;
@@ -410,7 +407,6 @@
           picker.value = idx;
           prevBtn.disabled = idx <= 0;
           nextBtn.disabled = idx >= jours.length - 1;
-
           const j = jours[idx];
           const netClass = j.net >= 0 ? 'net-pos' : 'net-neg';
           detail.innerHTML = `
@@ -420,28 +416,14 @@
                 <button class="btn-remove btn-suppr" data-id="${j.id}" title="Supprimer">✕</button>
               </div>
               <div class="macros-row">
-                <div class="macro-badge apport">
-                  <span class="macro-val">${j.calories}</span>
-                  <span class="macro-lbl">kcal apport</span>
-                </div>
-                <div class="macro-badge prot">
-                  <span class="macro-val">${j.proteines}g</span>
-                  <span class="macro-lbl">protéines</span>
-                </div>
-                <div class="macro-badge gluc">
-                  <span class="macro-val">${j.glucides}g</span>
-                  <span class="macro-lbl">glucides</span>
-                </div>
-                <div class="macro-badge lip">
-                  <span class="macro-val">${j.lipides}g</span>
-                  <span class="macro-lbl">lipides</span>
-                </div>
+                <div class="macro-badge apport"><span class="macro-val">${j.calories}</span><span class="macro-lbl">kcal apport</span></div>
+                <div class="macro-badge prot"><span class="macro-val">${j.proteines}g</span><span class="macro-lbl">protéines</span></div>
+                <div class="macro-badge gluc"><span class="macro-val">${j.glucides}g</span><span class="macro-lbl">glucides</span></div>
+                <div class="macro-badge lip"><span class="macro-val">${j.lipides}g</span><span class="macro-lbl">lipides</span></div>
               </div>
               ${j.cardio?.length ? `
                 <div class="cardio-hist">
-                  ${j.cardio.map(a => `
-                    <span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>
-                  `).join('')}
+                  ${j.cardio.map(a => `<span class="cardio-pill">🏃 ${a.nom}${a.calories ? ` · −${a.calories} kcal` : ''}</span>`).join('')}
                 </div>` : ''}
               <div class="net-line ${netClass}">
                 Net : ${j.net >= 0 ? '+' : ''}${j.net} kcal
@@ -450,56 +432,42 @@
               ${j.notes ? `<p class="jour-notes">${j.notes}</p>` : ''}
             </div>
           `;
-
           detail.querySelector('.btn-suppr')?.addEventListener('click', async () => {
             if (!confirm('Supprimer cette journée ?')) return;
-            await fetch(`${API_URL}/nutrition/${j.id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/nutrition/${j.id}`, { method:'DELETE', headers: authHeaders() });
             chargerHistorique();
           });
         }
 
         let currentIdx = 0;
         renderDetail(0);
-
-        picker.addEventListener('change', () => {
-          currentIdx = +picker.value;
-          renderDetail(currentIdx);
-        });
+        picker.addEventListener('change', () => { currentIdx = +picker.value; renderDetail(currentIdx); });
         prevBtn.addEventListener('click', () => { if (currentIdx > 0) renderDetail(--currentIdx); });
-        nextBtn.addEventListener('click', () => { if (currentIdx < jours.length - 1) renderDetail(++currentIdx); });
+        nextBtn.addEventListener('click', () => { if (currentIdx < jours.length-1) renderDetail(++currentIdx); });
 
       } catch(e) {
-        document.getElementById('historique-detail').innerHTML =
-          '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
+        document.getElementById('historique-detail').innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
       }
     }
 
-    ///////////
+    // ─── GRAPHIQUE POIDS ─────────────────────────────────────
     function afficherGraphiquePoids(jours) {
-      const points = jours
-        .filter(j => j.poids != null && j.poids > 0)
+      const points = jours.filter(j => j.poids != null && j.poids > 0)
         .map(j => ({ x: j.date.slice(0,10), y: parseFloat(j.poids) }))
         .sort((a, b) => a.x.localeCompare(b.x));
 
-      const section = document.getElementById('poids-section');
       const emptyEl = document.getElementById('poids-empty');
       const statsEl = document.getElementById('poids-stats');
       const canvas  = document.getElementById('poids-chart');
 
       if (!points.length) {
-        emptyEl.style.display = '';
-        statsEl.style.display = 'none';
-        canvas.style.display  = 'none';
+        emptyEl.style.display = ''; statsEl.style.display = 'none'; canvas.style.display = 'none';
         return;
       }
+      emptyEl.style.display = 'none'; statsEl.style.display = ''; canvas.style.display = '';
 
-      emptyEl.style.display = 'none';
-      statsEl.style.display = '';
-      canvas.style.display  = '';
-
-      // Stats
       const vals   = points.map(p => p.y);
-      const actuel = vals[vals.length - 1];
+      const actuel = vals[vals.length-1];
       const min    = Math.min(...vals);
       const max    = Math.max(...vals);
       const diff   = +(actuel - vals[0]).toFixed(1);
@@ -510,11 +478,9 @@
       document.getElementById('stat-diff').textContent   = (diff >= 0 ? '+' : '') + diff + ' kg';
       document.getElementById('stat-diff').style.color   = diff <= 0 ? '#4caf7d' : '#e07b39';
 
-      // Graphique
       if (poidsChartInstance) poidsChartInstance.destroy();
 
-      const ctx = canvas.getContext('2d');
-      poidsChartInstance = new Chart(ctx, {
+      poidsChartInstance = new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
           labels: points.map(p => new Date(p.x).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' })),
@@ -522,34 +488,21 @@
             data: points.map(p => p.y),
             borderColor: '#e07b39',
             backgroundColor: 'rgba(224,123,57,0.08)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: '#e07b39',
-            tension: 0.3,
-            fill: true
+            borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#e07b39',
+            tension: 0.3, fill: true
           }]
         },
         options: {
           responsive: true,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => ctx.parsed.y + ' kg'
-              }
-            }
+            tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' kg' } }
           },
           scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 11 }, color: '#999' }
-            },
+            x: { grid: { display: false }, ticks: { font:{size:11}, color:'#999' } },
             y: {
               grid: { color: 'rgba(0,0,0,0.05)' },
-              ticks: {
-                font: { size: 11 }, color: '#999',
-                callback: v => v + ' kg'
-              },
+              ticks: { font:{size:11}, color:'#999', callback: v => v + ' kg' },
               suggestedMin: Math.min(...vals) - 1,
               suggestedMax: Math.max(...vals) + 1
             }
@@ -558,8 +511,6 @@
       });
     }
 
-    ////////
-    
     chargerHistorique();
   </script>
 </body>

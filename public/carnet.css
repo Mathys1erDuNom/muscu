@@ -690,3 +690,56 @@ footer {
   position: relative;
   height: 140px;
 }
+/* ─── AUTH SCREEN ────────────────────────────────────────── */
+.auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.4rem;
+  border-bottom: 2px solid var(--fer);
+}
+.auth-tab {
+  background: transparent;
+  border: none;
+  color: var(--doux);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.auth-tab:hover   { color: var(--texte); }
+.auth-tab.active  { color: var(--accent); border-bottom-color: var(--accent); }
+
+.auth-msg {
+  margin-top: 0.7rem;
+  font-size: 0.88rem;
+  min-height: 1.4em;
+}
+
+/* ─── USER BADGE ─────────────────────────────────────────── */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.user-name {
+  font-size: 0.8rem;
+  color: var(--doux);
+  font-weight: 600;
+}
+.btn-logout {
+  background: transparent;
+  border: 1px solid #444;
+  color: var(--doux);
+  border-radius: 3px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-logout:hover { border-color: var(--rouge); color: var(--rouge); }

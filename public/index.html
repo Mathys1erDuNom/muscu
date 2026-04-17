@@ -9,716 +9,713 @@
 </head>
 <body>
 
-  <header>
-    <div class="header-inner">
-      <span class="tag">MON CARNET</span>
-      <a href="nutrition.html" class="nav-link">Nutrition →</a>
-      <h1>SÉANCES<br><em>MUSCU</em></h1>
-    </div>
-  </header>
-
-  <main>
-
-    <!-- FORMULAIRE NOUVELLE SÉANCE -->
-    <section class="card" id="form-section">
-      <h2>Nouvelle séance</h2>
-
-      <div class="form-group">
-        <label for="date">Date</label>
-        <input type="date" id="date"/>
+  <!-- ═══ ÉCRAN AUTH ════════════════════════════════════════ -->
+  <div id="auth-screen">
+    <header>
+      <div class="header-inner">
+        <span class="tag">MON CARNET</span>
+        <h1>SÉANCES<br><em>MUSCU</em></h1>
       </div>
+    </header>
+    <main style="max-width:400px">
+      <section class="card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Connexion</button>
+          <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Créer un compte</button>
+        </div>
 
-      <div class="form-group">
-        <label for="nom-seance">Nom de la séance</label>
-        <input type="text" id="nom-seance" placeholder="ex: Full Body A, Push, Pull…"/>
+        <div id="panel-login">
+          <div class="form-group">
+            <label for="login-user">Nom d'utilisateur</label>
+            <input type="text" id="login-user" placeholder="ex: thomas" autocomplete="username"/>
+          </div>
+          <div class="form-group">
+            <label for="login-pass">Mot de passe</label>
+            <input type="password" id="login-pass" autocomplete="current-password"/>
+          </div>
+          <button class="btn-primary" onclick="doLogin()">Se connecter</button>
+          <p id="auth-msg-login" class="auth-msg"></p>
+        </div>
+
+        <div id="panel-register" style="display:none">
+          <div class="form-group">
+            <label for="reg-user">Nom d'utilisateur</label>
+            <input type="text" id="reg-user" placeholder="ex: thomas" autocomplete="username"/>
+          </div>
+          <div class="form-group">
+            <label for="reg-pass">Mot de passe</label>
+            <input type="password" id="reg-pass" placeholder="min. 4 caractères" autocomplete="new-password"/>
+          </div>
+          <button class="btn-primary" onclick="doRegister()">Créer le compte</button>
+          <p id="auth-msg-register" class="auth-msg"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ═══ APP PRINCIPALE ════════════════════════════════════ -->
+  <div id="app-screen" style="display:none">
+
+    <header>
+      <div class="header-inner">
+        <span class="tag">MON CARNET</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+          <a href="nutrition.html" class="nav-link">Nutrition →</a>
+          <span id="user-badge" class="user-badge"></span>
+        </div>
+        <h1>SÉANCES<br><em>MUSCU</em></h1>
       </div>
+    </header>
 
-      <div class="form-group">
-        <label>Exercices</label>
-        <div id="exercices-list"></div>
-        <button class="btn-secondary" id="ajouter-exo">+ Ajouter un exercice</button>
-      </div>
+    <main>
 
-      <div class="form-group">
-        <label for="notes">Notes libres</label>
-        <textarea id="notes" rows="3" placeholder="Ressenti, fatigue, remarques…"></textarea>
-      </div>
+      <!-- FORMULAIRE NOUVELLE SÉANCE -->
+      <section class="card" id="form-section">
+        <h2>Nouvelle séance</h2>
 
-      <button class="btn-primary" id="sauvegarder">Enregistrer la séance</button>
-      <p id="status-msg"></p>
-    </section>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" id="date"/>
+        </div>
 
-    <!-- HISTORIQUE -->
-    <section class="card" id="historique-section">
-      <h2>Historique</h2>
-      <div id="dernier-entrainement"></div>
-      <hr class="dernier-sep"/>
-      <div class="date-nav">
-        <button class="btn-secondary nav-arrow" id="hist-prev">←</button>
-        <select id="hist-picker" style="flex:1"></select>
-        <button class="btn-secondary nav-arrow" id="hist-next">→</button>
-      </div>
-      <div id="historique-detail"></div>
-    </section>
+        <div class="form-group">
+          <label for="nom-seance">Nom de la séance</label>
+          <input type="text" id="nom-seance" placeholder="ex: Full Body A, Push, Pull…"/>
+        </div>
 
-  </main>
+        <div class="form-group">
+          <label>Exercices</label>
+          <div id="exercices-list"></div>
+          <button class="btn-secondary" id="ajouter-exo">+ Ajouter un exercice</button>
+        </div>
 
-  <footer>
-    <p>© 2026 Carnet Muscu</p>
-  </footer>
+        <div class="form-group">
+          <label for="notes">Notes libres</label>
+          <textarea id="notes" rows="3" placeholder="Ressenti, fatigue, remarques…"></textarea>
+        </div>
+
+        <button class="btn-primary" id="sauvegarder">Enregistrer la séance</button>
+        <p id="status-msg"></p>
+      </section>
+
+      <!-- HISTORIQUE -->
+      <section class="card" id="historique-section">
+        <h2>Historique</h2>
+        <div id="dernier-entrainement"></div>
+        <hr class="dernier-sep"/>
+        <div class="date-nav">
+          <button class="btn-secondary nav-arrow" id="hist-prev">←</button>
+          <select id="hist-picker" style="flex:1"></select>
+          <button class="btn-secondary nav-arrow" id="hist-next">→</button>
+        </div>
+        <div id="historique-detail"></div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>© 2026 Carnet Muscu</p>
+    </footer>
+
+  </div><!-- /#app-screen -->
 
   <script>
     // ─── CONFIG ───────────────────────────────────────────────
     const API_URL = '';
-    // ──────────────────────────────────────────────────────────
+    const TOKEN_KEY   = 'muscu_token';
+    const USERNAME_KEY = 'muscu_username';
 
-    document.getElementById('date').valueAsDate = new Date();
+    // ─── AUTH HELPERS ─────────────────────────────────────────
+    function getToken()    { return localStorage.getItem(TOKEN_KEY); }
+    function getUsername() { return localStorage.getItem(USERNAME_KEY); }
 
-    // ─── CACHE HISTORIQUE ────────────────────────────────────
-    // On garde en mémoire toutes les séances pour la comparaison
-    let _cachedSeances = [];
-
-    /**
-     * Retourne les dernières perfs d'un exercice (avant la date courante)
-     * { poidsMax, repsMax, totalReps, series }
-     */
-    function getDernierePerf(nomExo) {
-      const n = nomExo.trim().toLowerCase();
-      if (!n) return null;
-      const dateActuelle = document.getElementById('date').value;
-
-      // Chercher dans toutes les séances, du plus récent au plus ancien
-      for (const seance of _cachedSeances) {
-        // Ignorer les séances de la même date (on édite peut-être ce jour)
-        if (dateActuelle && seance.date && seance.date.slice(0, 10) === dateActuelle) continue;
-        const exo = (seance.exercices || []).find(e => e.nom && e.nom.trim().toLowerCase() === n);
-        if (!exo) continue;
-        const series = (exo.series || []).filter(s => s.reps !== null || s.poids !== null);
-        if (!series.length) continue;
-        const poidsMax = Math.max(...series.map(s => s.poids ?? 0));
-        const totalReps = series.reduce((acc, s) => acc + (s.reps ?? 0), 0);
-        const nbSeries = series.length;
-        return { poidsMax, totalReps, nbSeries, series, seanceDate: seance.date };
-      }
-      return null;
+    function authHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      };
     }
 
-    /**
-     * Compare une série (index i) avec la série correspondante de la dernière perf
-     * Retourne { verdict, msg } ou null
-     */
-    function comparerSerie(nomExo, serieIdx, repsActuel, poidsActuel) {
-      const derniere = getDernierePerf(nomExo);
-      if (!derniere) {
-        return serieIdx === 0 ? { verdict: 'new', msg: '1ère fois !' } : null;
-      }
-
-      const dateStr = new Date(derniere.seanceDate).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
-      const refSeries = derniere.series;
-
-      if (serieIdx >= refSeries.length) {
-        return { verdict: 'extra', msg: `Série bonus vs ${dateStr}` };
-      }
-
-      const ref = refSeries[serieIdx];
-      const refPoids = ref.poids ?? 0;
-      const refReps  = ref.reps  ?? 0;
-      const curPoids = poidsActuel ?? 0;
-      const curReps  = repsActuel  ?? 0;
-
-      if (curPoids === 0 && curReps === 0) return null;
-
-      if (curPoids > refPoids) {
-        const diff = (curPoids - refPoids).toFixed(1).replace(/\.0$/, '');
-        return { verdict: 'better', msg: `+${diff} kg` };
-      }
-      if (curPoids < refPoids) {
-        const diff = (refPoids - curPoids).toFixed(1).replace(/\.0$/, '');
-        return { verdict: 'worse', msg: `−${diff} kg` };
-      }
-      if (curReps > refReps) return { verdict: 'better', msg: `+${curReps - refReps} reps` };
-      if (curReps < refReps) return { verdict: 'worse',  msg: `−${refReps - curReps} reps` };
-      return { verdict: 'equal', msg: `= ${dateStr}` };
+    function saveSession(token, username) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USERNAME_KEY, username);
     }
 
-    /** Met à jour le badge du bloc (1ère fois) + les chips inline de chaque série */
-    function afficherPerfBadge(bloc, nomExo) {
-      // Badge bloc "1ère fois"
-      let blocBadge = bloc.querySelector('.perf-badge-bloc');
-      if (!blocBadge) {
-        blocBadge = document.createElement('div');
-        blocBadge.className = 'perf-badge perf-badge-bloc';
-        bloc.querySelector('.exo-bloc-header').after(blocBadge);
-      }
-      const derniere = getDernierePerf(nomExo);
-      if (!derniere) {
-        blocBadge.className = 'perf-badge perf-badge-bloc perf-new';
-        blocBadge.innerHTML = `<span class="perf-icon">★</span><span class="perf-msg">1ère fois !</span>`;
-      } else {
-        blocBadge.innerHTML = '';
-        blocBadge.className = 'perf-badge perf-badge-bloc';
-      }
-
-      // Chip sur chaque ligne de série
-      const rows = Array.from(bloc.querySelectorAll('.serie-row'));
-      rows.forEach((row, i) => {
-        const reps  = +row.querySelector('.serie-reps').value  || 0;
-        const poids = +row.querySelector('.serie-poids').value || 0;
-
-        let chip = row.querySelector('.serie-perf-chip');
-        if (!chip) {
-          chip = document.createElement('span');
-          chip.className = 'serie-perf-chip';
-          row.querySelector('.btn-serie-remove').before(chip);
-        }
-
-        if (!derniere) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
-
-        const result = comparerSerie(nomExo, i, reps, poids);
-        if (!result) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
-
-        const icons = { better: '↑', worse: '↓', equal: '=', extra: '+' };
-        chip.className = `serie-perf-chip chip-${result.verdict}`;
-        chip.textContent = `${icons[result.verdict]} ${result.msg}`;
-      });
+    function clearSession() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USERNAME_KEY);
     }
 
-    // ─── MÉMOIRE EXERCICES ───────────────────────────────────
-    const EXO_KEY = 'muscu_exo_names';
-
-    function getExoNames() {
-      try { return JSON.parse(localStorage.getItem(EXO_KEY)) || []; }
-      catch { return []; }
-    }
-    function saveExoName(nom) {
-      if (!nom) return;
-      const list = getExoNames();
-      const n = nom.trim();
-      if (!list.includes(n)) {
-        list.push(n);
-        list.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
-        localStorage.setItem(EXO_KEY, JSON.stringify(list));
-      }
-    }
-    function deleteExoName(nom) {
-      const list = getExoNames().filter(n => n !== nom);
-      localStorage.setItem(EXO_KEY, JSON.stringify(list));
-    }
-    function seedExoNamesFromHistory(seances) {
-      seances.forEach(s => (s.exercices || []).forEach(e => { if (e.nom) saveExoName(e.nom); }));
+    function showApp() {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display  = '';
+      const uname = getUsername();
+      document.getElementById('user-badge').innerHTML =
+        `<span class="user-name">👤 ${uname}</span>
+         <button class="btn-logout" onclick="doLogout()">Déconnexion</button>`;
     }
 
-    // ─── AUTOCOMPLETE ────────────────────────────────────────
-    function attachAutocomplete(input) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'autocomplete-wrap';
-      input.parentNode.insertBefore(wrapper, input);
-      wrapper.appendChild(input);
-
-      const dropdown = document.createElement('ul');
-      dropdown.className = 'autocomplete-list hidden';
-      wrapper.appendChild(dropdown);
-
-      let activeIdx = -1;
-
-      function renderList(query) {
-        const q = query.trim().toLowerCase();
-        if (!q) { dropdown.classList.add('hidden'); return; }
-        const matches = getExoNames().filter(n => n.toLowerCase().includes(q));
-        if (!matches.length) { dropdown.classList.add('hidden'); return; }
-
-        activeIdx = -1;
-        dropdown.innerHTML = matches.map(m => {
-          const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-          const hl = m.replace(re, '<strong>$1</strong>');
-          return `<li data-val="${m}">
-            <span class="ac-label">${hl}</span>
-            <button class="ac-delete" data-nom="${m}" title="Supprimer de la mémoire">✕</button>
-          </li>`;
-        }).join('');
-        dropdown.classList.remove('hidden');
-
-        // Sélectionner une suggestion
-        dropdown.querySelectorAll('li').forEach(li => {
-          li.querySelector('.ac-label').addEventListener('mousedown', e => {
-            e.preventDefault();
-            input.value = li.dataset.val;
-            dropdown.classList.add('hidden');
-            afficherPerfBadge(input.closest('.exo-bloc'), li.dataset.val);
-          });
-        });
-
-        // Supprimer une suggestion de la mémoire
-        dropdown.querySelectorAll('.ac-delete').forEach(btn => {
-          btn.addEventListener('mousedown', e => {
-            e.preventDefault();
-            e.stopPropagation();
-            deleteExoName(btn.dataset.nom);
-            renderList(input.value);
-          });
-        });
-      }
-
-      input.addEventListener('input', () => renderList(input.value));
-
-      input.addEventListener('keydown', e => {
-        const items = dropdown.querySelectorAll('li');
-        if (!items.length || dropdown.classList.contains('hidden')) return;
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          activeIdx = (activeIdx + 1) % items.length;
-          items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          activeIdx = (activeIdx - 1 + items.length) % items.length;
-          items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
-        } else if (e.key === 'Enter' && activeIdx >= 0) {
-          e.preventDefault();
-          input.value = items[activeIdx].dataset.val;
-          dropdown.classList.add('hidden');
-          afficherPerfBadge(input.closest('.exo-bloc'), input.value);
-        } else if (e.key === 'Escape') {
-          dropdown.classList.add('hidden');
-        }
-      });
-
-      input.addEventListener('blur', () => {
-        setTimeout(() => dropdown.classList.add('hidden'), 150);
-        if (input.value.trim()) {
-          saveExoName(input.value.trim());
-          afficherPerfBadge(input.closest('.exo-bloc'), input.value.trim());
-        }
-      });
+    function showAuth() {
+      document.getElementById('auth-screen').style.display = '';
+      document.getElementById('app-screen').style.display  = 'none';
     }
 
-    // ─── BUILDER EXERCICES ───────────────────────────────────
-    function renumeroterSeries(seriesList) {
-      seriesList.querySelectorAll('.serie-num').forEach((el, i) => {
-        el.textContent = `Série ${i + 1}`;
-      });
+    function switchTab(tab) {
+      document.getElementById('panel-login').style.display    = tab === 'login'    ? '' : 'none';
+      document.getElementById('panel-register').style.display = tab === 'register' ? '' : 'none';
+      document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
     }
 
-    function creerLigneSerie(num) {
-      const div = document.createElement('div');
-      div.className = 'serie-row';
-      div.innerHTML = `
-        <span class="serie-num">Série ${num}</span>
-        <div class="serie-inputs">
-          <input type="number" class="serie-reps"  placeholder="Reps" min="1"/>
-          <span class="serie-sep">×</span>
-          <input type="number" class="serie-poids" placeholder="kg"   min="0" step="0.5"/>
-          <span class="serie-unit">kg</span>
-        </div>
-        <button class="btn-remove btn-serie-remove" title="Supprimer">✕</button>
-      `;
-      div.querySelector('.btn-serie-remove').addEventListener('click', () => {
-        const seriesList = div.parentElement;
-        div.remove();
-        if (seriesList) {
-          renumeroterSeries(seriesList);
-          const bloc = seriesList.closest('.exo-bloc');
-          const nom = bloc?.querySelector('.exo-nom')?.value?.trim();
-          if (nom) afficherPerfBadge(bloc, nom);
-        }
-      });
-      // Mettre à jour le badge quand on tape
-      div.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', () => {
-          const bloc = div.closest('.exo-bloc');
-          const nom = bloc?.querySelector('.exo-nom')?.value?.trim();
-          if (nom) afficherPerfBadge(bloc, nom);
-        });
-      });
-      return div;
-    }
-
-    function creerBlocExo() {
-      const bloc = document.createElement('div');
-      bloc.className = 'exo-bloc';
-      bloc.innerHTML = `
-        <div class="exo-bloc-header">
-          <input type="text" class="exo-nom" placeholder="Nom de l'exercice (ex: Squat barre)"/>
-          <button class="btn-remove btn-exo-remove" title="Supprimer l'exercice">✕</button>
-        </div>
-        <div class="series-list"></div>
-        <button class="btn-add-serie">+ Série</button>
-      `;
-
-      bloc.querySelector('.btn-exo-remove').addEventListener('click', () => bloc.remove());
-
-      const seriesList = bloc.querySelector('.series-list');
-      bloc.querySelector('.btn-add-serie').addEventListener('click', () => {
-        const num = seriesList.querySelectorAll('.serie-row').length + 1;
-        seriesList.appendChild(creerLigneSerie(num));
-      });
-
-      seriesList.appendChild(creerLigneSerie(1));
-      seriesList.appendChild(creerLigneSerie(2));
-      seriesList.appendChild(creerLigneSerie(3));
-
-      attachAutocomplete(bloc.querySelector('.exo-nom'));
-
-      return bloc;
-    }
-
-    document.getElementById('ajouter-exo').addEventListener('click', () => {
-      document.getElementById('exercices-list').appendChild(creerBlocExo());
-    });
-
-    document.getElementById('exercices-list').appendChild(creerBlocExo());
-
-    // ─── SAUVEGARDER ─────────────────────────────────────────
-    document.getElementById('sauvegarder').addEventListener('click', async () => {
-      const date     = document.getElementById('date').value;
-      const nom      = document.getElementById('nom-seance').value.trim();
-      const notes    = document.getElementById('notes').value.trim();
-      const statusEl = document.getElementById('status-msg');
-
-      if (!date || !nom) {
-        statusEl.textContent = '⚠ Remplis la date et le nom de la séance.';
-        statusEl.className = 'msg-error';
-        return;
-      }
-
-      const exercices = [];
-      document.querySelectorAll('.exo-bloc').forEach(bloc => {
-        const nomExo = bloc.querySelector('.exo-nom').value.trim();
-        if (!nomExo) return;
-        const series = [];
-        bloc.querySelectorAll('.serie-row').forEach(row => {
-          const reps  = row.querySelector('.serie-reps').value;
-          const poids = row.querySelector('.serie-poids').value;
-          series.push({ reps: reps ? +reps : null, poids: poids ? +poids : null });
-        });
-        exercices.push({ nom: nomExo, series });
-      });
-
-      exercices.forEach(e => saveExoName(e.nom));
-
-      const payload = { date, nom, notes, exercices };
-      statusEl.textContent = 'Enregistrement…';
-      statusEl.className = '';
-
+    async function doLogin() {
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value;
+      const msg = document.getElementById('auth-msg-login');
+      msg.textContent = '';
+      if (!username || !password) { msg.className = 'auth-msg msg-error'; msg.textContent = '⚠ Remplis tous les champs.'; return; }
       try {
-        const res = await fetch(`${API_URL}/seances`, {
+        const res = await fetch(`${API_URL}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ username, password })
         });
-        if (!res.ok) throw new Error();
-        statusEl.textContent = '✓ Séance enregistrée !';
-        statusEl.className = 'msg-ok';
-        document.getElementById('nom-seance').value = '';
-        document.getElementById('notes').value = '';
-        document.getElementById('date').valueAsDate = new Date();
-        const list = document.getElementById('exercices-list');
-        list.innerHTML = '';
-        list.appendChild(creerBlocExo());
-        chargerHistorique();
-      } catch (e) {
-        statusEl.textContent = '✗ Impossible de contacter le serveur.';
-        statusEl.className = 'msg-error';
+        const data = await res.json();
+        if (!res.ok) { msg.className = 'auth-msg msg-error'; msg.textContent = '✗ ' + data.error; return; }
+        saveSession(data.token, data.username);
+        showApp();
+        initApp();
+      } catch(e) {
+        msg.className = 'auth-msg msg-error';
+        msg.textContent = '✗ Impossible de contacter le serveur.';
       }
+    }
+
+    async function doRegister() {
+      const username = document.getElementById('reg-user').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      const msg = document.getElementById('auth-msg-register');
+      msg.textContent = '';
+      if (!username || !password) { msg.className = 'auth-msg msg-error'; msg.textContent = '⚠ Remplis tous les champs.'; return; }
+      try {
+        const res = await fetch(`${API_URL}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) { msg.className = 'auth-msg msg-error'; msg.textContent = '✗ ' + data.error; return; }
+        saveSession(data.token, data.username);
+        showApp();
+        initApp();
+      } catch(e) {
+        msg.className = 'auth-msg msg-error';
+        msg.textContent = '✗ Impossible de contacter le serveur.';
+      }
+    }
+
+    function doLogout() {
+      clearSession();
+      showAuth();
+    }
+
+    // Touche Entrée sur les champs login/register
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const panel = document.getElementById('panel-login').style.display !== 'none' ? 'login' : 'register';
+      if (panel === 'login')    doLogin();
+      else                      doRegister();
     });
 
-    // ─── HISTORIQUE ──────────────────────────────────────────
-    async function chargerHistorique() {
-      const picker  = document.getElementById('hist-picker');
-      const detail  = document.getElementById('historique-detail');
-      const prevBtn = document.getElementById('hist-prev');
-      const nextBtn = document.getElementById('hist-next');
+    // ─── DÉMARRAGE ────────────────────────────────────────────
+    if (getToken()) { showApp(); initApp(); }
+    else            { showAuth(); }
 
-      try {
-        const res = await fetch(`${API_URL}/seances`);
-        if (!res.ok) throw new Error();
-        const seances = await res.json();
-        _cachedSeances = seances;
-        seedExoNamesFromHistory(seances);
+    // ══════════════════════════════════════════════════════════
+    //  APP (uniquement chargée après connexion)
+    // ══════════════════════════════════════════════════════════
+    function initApp() {
+      document.getElementById('date').valueAsDate = new Date();
 
-        // ─── DERNIER ENTRAÎNEMENT ── AJOUTE CE BLOC ───────────
-        const dernier = seances[0];
-        const joursDiff = dernier ? Math.floor(
-          (new Date().setHours(0,0,0,0) - new Date(dernier.date).setHours(0,0,0,0))
-          / (1000 * 60 * 60 * 24)
-        ) : null;
-        const labelJours = joursDiff === 0 ? "Aujourd'hui"
-          : joursDiff === 1 ? "Il y a 1 jour"
-          : `Il y a ${joursDiff} jours`;
+      // ─── CACHE HISTORIQUE ──────────────────────────────────
+      let _cachedSeances = [];
 
-        document.getElementById('dernier-entrainement').innerHTML = dernier ? `
-          <div class="dernier-card">
-            <div class="dernier-header">
-              <div>
-                <span class="dernier-label">Dernier entraînement</span>
-                <span class="dernier-when">${labelJours}</span>
-              </div>
-              <span class="dernier-date">${new Date(dernier.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
-            </div>
-            <div class="dernier-nom">${dernier.nom}</div>
-            ${dernier.exercices?.length ? `
-              <div class="dernier-exos">
-                ${dernier.exercices.map(e => `
-                  <div class="dernier-exo">
-                    <span class="dernier-exo-nom">${e.nom}</span>
-                    <span class="dernier-exo-series">${e.series?.length ?? 0} séries${
-                      e.series?.length ? ' · ' + Math.max(...e.series.map(s => s.poids ?? 0)) + 'kg max' : ''
-                    }</span>
-                  </div>
-                `).join('')}
-              </div>` : ''}
-            ${dernier.notes ? `<p class="dernier-notes">${dernier.notes}</p>` : ''}
+      function getDernierePerf(nomExo) {
+        const n = nomExo.trim().toLowerCase();
+        if (!n) return null;
+        const dateActuelle = document.getElementById('date').value;
+        for (const seance of _cachedSeances) {
+          if (dateActuelle && seance.date && seance.date.slice(0, 10) === dateActuelle) continue;
+          const exo = (seance.exercices || []).find(e => e.nom && e.nom.trim().toLowerCase() === n);
+          if (!exo) continue;
+          const series = (exo.series || []).filter(s => s.reps !== null || s.poids !== null);
+          if (!series.length) continue;
+          const poidsMax  = Math.max(...series.map(s => s.poids ?? 0));
+          const totalReps = series.reduce((acc, s) => acc + (s.reps ?? 0), 0);
+          return { poidsMax, totalReps, nbSeries: series.length, series, seanceDate: seance.date };
+        }
+        return null;
+      }
+
+      function comparerSerie(nomExo, serieIdx, repsActuel, poidsActuel) {
+        const derniere = getDernierePerf(nomExo);
+        if (!derniere) {
+          return serieIdx === 0 ? { verdict: 'new', msg: '1ère fois !' } : null;
+        }
+        const dateStr   = new Date(derniere.seanceDate).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+        const refSeries = derniere.series;
+        if (serieIdx >= refSeries.length) return { verdict: 'extra', msg: `Série bonus vs ${dateStr}` };
+        const ref      = refSeries[serieIdx];
+        const refPoids = ref.poids ?? 0;
+        const refReps  = ref.reps  ?? 0;
+        const curPoids = poidsActuel ?? 0;
+        const curReps  = repsActuel  ?? 0;
+        if (curPoids === 0 && curReps === 0) return null;
+        if (curPoids > refPoids) { const d = (curPoids - refPoids).toFixed(1).replace(/\.0$/,''); return { verdict:'better', msg:`+${d} kg` }; }
+        if (curPoids < refPoids) { const d = (refPoids - curPoids).toFixed(1).replace(/\.0$/,''); return { verdict:'worse',  msg:`−${d} kg` }; }
+        if (curReps  > refReps)  return { verdict:'better', msg:`+${curReps  - refReps} reps` };
+        if (curReps  < refReps)  return { verdict:'worse',  msg:`−${refReps  - curReps} reps` };
+        return { verdict:'equal', msg:`= ${dateStr}` };
+      }
+
+      function afficherPerfBadge(bloc, nomExo) {
+        let blocBadge = bloc.querySelector('.perf-badge-bloc');
+        if (!blocBadge) {
+          blocBadge = document.createElement('div');
+          blocBadge.className = 'perf-badge perf-badge-bloc';
+          bloc.querySelector('.exo-bloc-header').after(blocBadge);
+        }
+        const derniere = getDernierePerf(nomExo);
+        if (!derniere) {
+          blocBadge.className = 'perf-badge perf-badge-bloc perf-new';
+          blocBadge.innerHTML = `<span class="perf-icon">★</span><span class="perf-msg">1ère fois !</span>`;
+        } else {
+          blocBadge.innerHTML = '';
+          blocBadge.className = 'perf-badge perf-badge-bloc';
+        }
+        const rows = Array.from(bloc.querySelectorAll('.serie-row'));
+        rows.forEach((row, i) => {
+          const reps  = +row.querySelector('.serie-reps').value  || 0;
+          const poids = +row.querySelector('.serie-poids').value || 0;
+          let chip = row.querySelector('.serie-perf-chip');
+          if (!chip) {
+            chip = document.createElement('span');
+            chip.className = 'serie-perf-chip';
+            row.querySelector('.btn-serie-remove').before(chip);
+          }
+          if (!derniere) { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
+          const result = comparerSerie(nomExo, i, reps, poids);
+          if (!result)  { chip.className = 'serie-perf-chip'; chip.textContent = ''; return; }
+          const icons = { better:'↑', worse:'↓', equal:'=', extra:'+' };
+          chip.className = `serie-perf-chip chip-${result.verdict}`;
+          chip.textContent = `${icons[result.verdict]} ${result.msg}`;
+        });
+      }
+
+      // ─── MÉMOIRE EXERCICES (par utilisateur) ──────────────
+      const EXO_KEY = `muscu_exo_names_${getUsername()}`;
+
+      function getExoNames() {
+        try { return JSON.parse(localStorage.getItem(EXO_KEY)) || []; } catch { return []; }
+      }
+      function saveExoName(nom) {
+        if (!nom) return;
+        const list = getExoNames();
+        const n = nom.trim();
+        if (!list.includes(n)) {
+          list.push(n);
+          list.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity:'base' }));
+          localStorage.setItem(EXO_KEY, JSON.stringify(list));
+        }
+      }
+      function deleteExoName(nom) {
+        const list = getExoNames().filter(n => n !== nom);
+        localStorage.setItem(EXO_KEY, JSON.stringify(list));
+      }
+      function seedExoNamesFromHistory(seances) {
+        seances.forEach(s => (s.exercices || []).forEach(e => { if (e.nom) saveExoName(e.nom); }));
+      }
+
+      // ─── AUTOCOMPLETE ──────────────────────────────────────
+      function attachAutocomplete(input) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'autocomplete-wrap';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        const dropdown = document.createElement('ul');
+        dropdown.className = 'autocomplete-list hidden';
+        wrapper.appendChild(dropdown);
+
+        let activeIdx = -1;
+
+        function renderList(query) {
+          const q = query.trim().toLowerCase();
+          if (!q) { dropdown.classList.add('hidden'); return; }
+          const matches = getExoNames().filter(n => n.toLowerCase().includes(q));
+          if (!matches.length) { dropdown.classList.add('hidden'); return; }
+          activeIdx = -1;
+          dropdown.innerHTML = matches.map(m => {
+            const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+            const hl = m.replace(re, '<strong>$1</strong>');
+            return `<li data-val="${m}"><span class="ac-label">${hl}</span><button class="ac-delete" data-nom="${m}" title="Supprimer">✕</button></li>`;
+          }).join('');
+          dropdown.classList.remove('hidden');
+          dropdown.querySelectorAll('li').forEach(li => {
+            li.querySelector('.ac-label').addEventListener('mousedown', e => {
+              e.preventDefault();
+              input.value = li.dataset.val;
+              dropdown.classList.add('hidden');
+              afficherPerfBadge(input.closest('.exo-bloc'), li.dataset.val);
+            });
+          });
+          dropdown.querySelectorAll('.ac-delete').forEach(btn => {
+            btn.addEventListener('mousedown', e => {
+              e.preventDefault(); e.stopPropagation();
+              deleteExoName(btn.dataset.nom);
+              renderList(input.value);
+            });
+          });
+        }
+
+        input.addEventListener('input', () => renderList(input.value));
+        input.addEventListener('keydown', e => {
+          const items = dropdown.querySelectorAll('li');
+          if (!items.length || dropdown.classList.contains('hidden')) return;
+          if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = (activeIdx+1)%items.length; items.forEach((li,i) => li.classList.toggle('active', i===activeIdx)); }
+          else if (e.key === 'ArrowUp')  { e.preventDefault(); activeIdx = (activeIdx-1+items.length)%items.length; items.forEach((li,i) => li.classList.toggle('active', i===activeIdx)); }
+          else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); input.value = items[activeIdx].dataset.val; dropdown.classList.add('hidden'); afficherPerfBadge(input.closest('.exo-bloc'), input.value); }
+          else if (e.key === 'Escape') dropdown.classList.add('hidden');
+        });
+        input.addEventListener('blur', () => {
+          setTimeout(() => dropdown.classList.add('hidden'), 150);
+          if (input.value.trim()) { saveExoName(input.value.trim()); afficherPerfBadge(input.closest('.exo-bloc'), input.value.trim()); }
+        });
+      }
+
+      // ─── BUILDER EXERCICES ────────────────────────────────
+      function renumeroterSeries(seriesList) {
+        seriesList.querySelectorAll('.serie-num').forEach((el, i) => { el.textContent = `Série ${i+1}`; });
+      }
+
+      function creerLigneSerie(num) {
+        const div = document.createElement('div');
+        div.className = 'serie-row';
+        div.innerHTML = `
+          <span class="serie-num">Série ${num}</span>
+          <div class="serie-inputs">
+            <input type="number" class="serie-reps"  placeholder="Reps" min="1"/>
+            <span class="serie-sep">×</span>
+            <input type="number" class="serie-poids" placeholder="kg" min="0" step="0.5"/>
+            <span class="serie-unit">kg</span>
           </div>
-        ` : '';
-        // ──────────────────────────────────────────────────────
+          <button class="btn-remove btn-serie-remove" title="Supprimer">✕</button>
+        `;
+        div.querySelector('.btn-serie-remove').addEventListener('click', () => {
+          const seriesList = div.parentElement;
+          div.remove();
+          if (seriesList) {
+            renumeroterSeries(seriesList);
+            const bloc = seriesList.closest('.exo-bloc');
+            const nom  = bloc?.querySelector('.exo-nom')?.value?.trim();
+            if (nom) afficherPerfBadge(bloc, nom);
+          }
+        });
+        div.querySelectorAll('input').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const bloc = div.closest('.exo-bloc');
+            const nom  = bloc?.querySelector('.exo-nom')?.value?.trim();
+            if (nom) afficherPerfBadge(bloc, nom);
+          });
+        });
+        return div;
+      }
 
-        if (!seances.length) {
-          picker.innerHTML = '<option>Aucune séance</option>';
-          detail.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
+      function creerBlocExo() {
+        const bloc = document.createElement('div');
+        bloc.className = 'exo-bloc';
+        bloc.innerHTML = `
+          <div class="exo-bloc-header">
+            <input type="text" class="exo-nom" placeholder="Nom de l'exercice (ex: Squat barre)"/>
+            <button class="btn-remove btn-exo-remove" title="Supprimer l'exercice">✕</button>
+          </div>
+          <div class="series-list"></div>
+          <button class="btn-add-serie">+ Série</button>
+        `;
+        bloc.querySelector('.btn-exo-remove').addEventListener('click', () => bloc.remove());
+        const seriesList = bloc.querySelector('.series-list');
+        bloc.querySelector('.btn-add-serie').addEventListener('click', () => {
+          const num = seriesList.querySelectorAll('.serie-row').length + 1;
+          seriesList.appendChild(creerLigneSerie(num));
+        });
+        seriesList.appendChild(creerLigneSerie(1));
+        seriesList.appendChild(creerLigneSerie(2));
+        seriesList.appendChild(creerLigneSerie(3));
+        attachAutocomplete(bloc.querySelector('.exo-nom'));
+        return bloc;
+      }
+
+      document.getElementById('ajouter-exo').addEventListener('click', () => {
+        document.getElementById('exercices-list').appendChild(creerBlocExo());
+      });
+
+      document.getElementById('exercices-list').innerHTML = '';
+      document.getElementById('exercices-list').appendChild(creerBlocExo());
+
+      // ─── SAUVEGARDER ──────────────────────────────────────
+      document.getElementById('sauvegarder').addEventListener('click', async () => {
+        const date     = document.getElementById('date').value;
+        const nom      = document.getElementById('nom-seance').value.trim();
+        const notes    = document.getElementById('notes').value.trim();
+        const statusEl = document.getElementById('status-msg');
+
+        if (!date || !nom) {
+          statusEl.textContent = '⚠ Remplis la date et le nom de la séance.';
+          statusEl.className = 'msg-error';
           return;
         }
 
-        // Remplir le sélecteur
-        picker.innerHTML = seances.map((s, i) => {
-          const d = new Date(s.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
-          return `<option value="${i}">${d} — ${s.nom}</option>`;
-        }).join('');
+        const exercices = [];
+        document.querySelectorAll('.exo-bloc').forEach(bloc => {
+          const nomExo = bloc.querySelector('.exo-nom').value.trim();
+          if (!nomExo) return;
+          const series = [];
+          bloc.querySelectorAll('.serie-row').forEach(row => {
+            const reps  = row.querySelector('.serie-reps').value;
+            const poids = row.querySelector('.serie-poids').value;
+            series.push({ reps: reps ? +reps : null, poids: poids ? +poids : null });
+          });
+          exercices.push({ nom: nomExo, series });
+        });
 
-        //////
-        function renderDetail(idx) {
-          picker.value = idx;
-          prevBtn.disabled = idx <= 0;
-          nextBtn.disabled = idx >= seances.length - 1;
+        exercices.forEach(e => saveExoName(e.nom));
 
-          const s = seances[idx];
-          detail.innerHTML = `
-            <div class="seance-item">
-              <div class="seance-header">
-                <span class="seance-nom">${s.nom}</span>
-                <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
-                <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
+        statusEl.textContent = 'Enregistrement…';
+        statusEl.className = '';
+
+        try {
+          const res = await fetch(`${API_URL}/seances`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ date, nom, notes, exercices })
+          });
+          if (res.status === 401) { doLogout(); return; }
+          if (!res.ok) throw new Error();
+          statusEl.textContent = '✓ Séance enregistrée !';
+          statusEl.className = 'msg-ok';
+          document.getElementById('nom-seance').value = '';
+          document.getElementById('notes').value = '';
+          document.getElementById('date').valueAsDate = new Date();
+          const list = document.getElementById('exercices-list');
+          list.innerHTML = '';
+          list.appendChild(creerBlocExo());
+          chargerHistorique();
+        } catch (e) {
+          statusEl.textContent = '✗ Impossible de contacter le serveur.';
+          statusEl.className = 'msg-error';
+        }
+      });
+
+      // ─── HISTORIQUE ───────────────────────────────────────
+      async function chargerHistorique() {
+        const picker  = document.getElementById('hist-picker');
+        const detail  = document.getElementById('historique-detail');
+        const prevBtn = document.getElementById('hist-prev');
+        const nextBtn = document.getElementById('hist-next');
+
+        try {
+          const res = await fetch(`${API_URL}/seances`, { headers: authHeaders() });
+          if (res.status === 401) { doLogout(); return; }
+          if (!res.ok) throw new Error();
+          const seances = await res.json();
+          _cachedSeances = seances;
+          seedExoNamesFromHistory(seances);
+
+          const dernier    = seances[0];
+          const joursDiff  = dernier ? Math.floor((new Date().setHours(0,0,0,0) - new Date(dernier.date).setHours(0,0,0,0)) / 86400000) : null;
+          const labelJours = joursDiff === 0 ? "Aujourd'hui" : joursDiff === 1 ? "Il y a 1 jour" : `Il y a ${joursDiff} jours`;
+
+          document.getElementById('dernier-entrainement').innerHTML = dernier ? `
+            <div class="dernier-card">
+              <div class="dernier-header">
+                <div>
+                  <span class="dernier-label">Dernier entraînement</span>
+                  <span class="dernier-when">${labelJours}</span>
+                </div>
+                <span class="dernier-date">${new Date(dernier.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
               </div>
-              ${s.exercices?.length ? `
-                <div class="hist-exercices">
-                  ${s.exercices.map(e => `
-                    <div class="hist-exo">
-                      <div class="hist-exo-nom">${e.nom}</div>
-                      <div class="hist-series">
-                        ${(e.series || []).map((sr, i) =>
-                          `<span class="hist-serie">S${i+1} · ${sr.reps ?? '?'} reps${sr.poids ? ` · ${sr.poids}kg` : ''}</span>`
-                        ).join('')}
-                      </div>
+              <div class="dernier-nom">${dernier.nom}</div>
+              ${dernier.exercices?.length ? `
+                <div class="dernier-exos">
+                  ${dernier.exercices.map(e => `
+                    <div class="dernier-exo">
+                      <span class="dernier-exo-nom">${e.nom}</span>
+                      <span class="dernier-exo-series">${e.series?.length ?? 0} séries${e.series?.length ? ' · ' + Math.max(...e.series.map(s => s.poids ?? 0)) + 'kg max' : ''}</span>
                     </div>
                   `).join('')}
                 </div>` : ''}
-              ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
-              <div class="hist-charts" id="hist-charts-container"></div>
+              ${dernier.notes ? `<p class="dernier-notes">${dernier.notes}</p>` : ''}
             </div>
-          `;
+          ` : '';
 
-          detail.querySelector('.btn-suppr')?.addEventListener('click', async () => {
-            if (!confirm('Supprimer cette séance ?')) return;
-            await fetch(`${API_URL}/seances/${s.id}`, { method: 'DELETE' });
-            chargerHistorique();
-          });
+          if (!seances.length) {
+            picker.innerHTML = '<option>Aucune séance</option>';
+            detail.innerHTML = '<p class="empty-msg">Aucune séance enregistrée.</p>';
+            return;
+          }
 
-          loadChartJs(() => renderChartsForSeance(s));
+          picker.innerHTML = seances.map((s, i) => {
+            const d = new Date(s.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+            return `<option value="${i}">${d} — ${s.nom}</option>`;
+          }).join('');
+
+          function renderDetail(idx) {
+            picker.value = idx;
+            prevBtn.disabled = idx <= 0;
+            nextBtn.disabled = idx >= seances.length - 1;
+            const s = seances[idx];
+            detail.innerHTML = `
+              <div class="seance-item">
+                <div class="seance-header">
+                  <span class="seance-nom">${s.nom}</span>
+                  <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
+                  <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
+                </div>
+                ${s.exercices?.length ? `
+                  <div class="hist-exercices">
+                    ${s.exercices.map(e => `
+                      <div class="hist-exo">
+                        <div class="hist-exo-nom">${e.nom}</div>
+                        <div class="hist-series">
+                          ${(e.series || []).map((sr, i) =>
+                            `<span class="hist-serie">S${i+1} · ${sr.reps ?? '?'} reps${sr.poids ? ` · ${sr.poids}kg` : ''}</span>`
+                          ).join('')}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>` : ''}
+                ${s.notes ? `<p class="seance-notes">${s.notes}</p>` : ''}
+                <div class="hist-charts" id="hist-charts-container"></div>
+              </div>
+            `;
+            detail.querySelector('.btn-suppr')?.addEventListener('click', async () => {
+              if (!confirm('Supprimer cette séance ?')) return;
+              await fetch(`${API_URL}/seances/${s.id}`, { method:'DELETE', headers: authHeaders() });
+              chargerHistorique();
+            });
+            loadChartJs(() => renderChartsForSeance(s));
+          }
+
+          let currentIdx = 0;
+          renderDetail(0);
+          picker.addEventListener('change', () => { currentIdx = +picker.value; renderDetail(currentIdx); });
+          prevBtn.addEventListener('click', () => { if (currentIdx > 0) renderDetail(--currentIdx); });
+          nextBtn.addEventListener('click', () => { if (currentIdx < seances.length-1) renderDetail(++currentIdx); });
+
+        } catch (e) {
+          document.getElementById('historique-detail').innerHTML = '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
         }
-
-
-        ////////////
-
-        let currentIdx = 0;
-        renderDetail(0);
-
-        picker.addEventListener('change', () => {
-          currentIdx = +picker.value;
-          renderDetail(currentIdx);
-        });
-        prevBtn.addEventListener('click', () => { if (currentIdx > 0) renderDetail(--currentIdx); });
-        nextBtn.addEventListener('click', () => { if (currentIdx < seances.length - 1) renderDetail(++currentIdx); });
-
-      } catch (e) {
-        document.getElementById('historique-detail').innerHTML =
-          '<p class="empty-msg msg-error">Impossible de charger l\'historique.</p>';
       }
-    }
 
+      // ─── CHART.JS ─────────────────────────────────────────
+      let _chartJsReady = false;
+      function loadChartJs(cb) {
+        if (window.Chart) { cb(); return; }
+        if (_chartJsReady) { const t = setInterval(() => { if (window.Chart) { clearInterval(t); cb(); } }, 30); return; }
+        _chartJsReady = true;
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+        s.onload = cb;
+        document.head.appendChild(s);
+      }
 
-    ////////
-    // Charge Chart.js une seule fois
-    let _chartJsReady = false;
-    function loadChartJs(cb) {
-      if (window.Chart) { cb(); return; }
-      if (_chartJsReady) { const t = setInterval(() => { if (window.Chart) { clearInterval(t); cb(); } }, 30); return; }
-      _chartJsReady = true;
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
-      s.onload = cb;
-      document.head.appendChild(s);
-    }
+      let _chartInstances = [];
 
-    // Instances Chart actives (pour les détruire avant re-rendu)
-    let _chartInstances = [];
+      function renderChartsForSeance(seance) {
+        _chartInstances.forEach(c => c.destroy());
+        _chartInstances = [];
+        const container = document.getElementById('hist-charts-container');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!seance.exercices?.length) return;
 
-    /////////////////////
+        const SERIE_COLORS = [
+          { line:'#e8ff00', point:'#e8ff00', fill:'rgba(232,255,0,0.08)' },
+          { line:'#44ff88', point:'#44ff88', fill:'rgba(68,255,136,0.08)' },
+          { line:'#4db8ff', point:'#4db8ff', fill:'rgba(77,184,255,0.08)' },
+          { line:'#ff8844', point:'#ff8844', fill:'rgba(255,136,68,0.08)' },
+          { line:'#cc88ff', point:'#cc88ff', fill:'rgba(204,136,255,0.08)' },
+          { line:'#ff4488', point:'#ff4488', fill:'rgba(255,68,136,0.08)' },
+        ];
 
-
-    function renderChartsForSeance(seance) {
-      _chartInstances.forEach(c => c.destroy());
-      _chartInstances = [];
-
-      const container = document.getElementById('hist-charts-container');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (!seance.exercices?.length) return;
-
-      // Palette de couleurs pour les séries
-      const SERIE_COLORS = [
-        { line: '#e8ff00', point: '#e8ff00', fill: 'rgba(232,255,0,0.08)' },
-        { line: '#44ff88', point: '#44ff88', fill: 'rgba(68,255,136,0.08)' },
-        { line: '#4db8ff', point: '#4db8ff', fill: 'rgba(77,184,255,0.08)' },
-        { line: '#ff8844', point: '#ff8844', fill: 'rgba(255,136,68,0.08)' },
-        { line: '#cc88ff', point: '#cc88ff', fill: 'rgba(204,136,255,0.08)' },
-        { line: '#ff4488', point: '#ff4488', fill: 'rgba(255,68,136,0.08)' },
-      ];
-
-      seance.exercices.forEach(exo => {
-        const nomExo = exo.nom;
-        if (!nomExo) return;
-
-        // Toutes les séances contenant cet exercice, triées du plus ancien au plus récent
-        const allSeances = [..._cachedSeances].reverse();
-        const seancesAvecExo = allSeances
-          .map(s => {
-            const e = (s.exercices || []).find(x =>
-              x.nom?.trim().toLowerCase() === nomExo.trim().toLowerCase()
-            );
+        seance.exercices.forEach(exo => {
+          const nomExo = exo.nom;
+          if (!nomExo) return;
+          const allSeances = [..._cachedSeances].reverse();
+          const seancesAvecExo = allSeances.map(s => {
+            const e = (s.exercices || []).find(x => x.nom?.trim().toLowerCase() === nomExo.trim().toLowerCase());
             if (!e || !e.series?.length) return null;
             return { date: s.date, id: s.id, series: e.series };
-          })
-          .filter(Boolean);
+          }).filter(Boolean);
+          if (!seancesAvecExo.length) return;
 
-        if (!seancesAvecExo.length) return;
+          const dates  = seancesAvecExo.map(s => s.date.slice(0,10));
+          const labels = seancesAvecExo.map(s => new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' }));
+          const maxSeries = Math.max(...seancesAvecExo.map(s => s.series.length));
+          const currentDateKey = seance.date?.slice(0,10);
 
-        const dates = seancesAvecExo.map(s => s.date.slice(0, 10));
-        const labels = seancesAvecExo.map(s =>
-          new Date(s.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
-        );
-
-        // Nombre max de séries sur toutes les séances
-        const maxSeries = Math.max(...seancesAvecExo.map(s => s.series.length));
-
-        const currentDateKey = seance.date?.slice(0, 10);
-
-        const makeDatasets = (valueKey) =>
-          Array.from({ length: maxSeries }, (_, si) => {
+          const makeDatasets = (valueKey) => Array.from({ length: maxSeries }, (_, si) => {
             const col = SERIE_COLORS[si % SERIE_COLORS.length];
-            const data = seancesAvecExo.map(s => {
-              const sr = s.series[si];
-              if (!sr) return null;
-              return sr[valueKey] ?? null;
-            });
-            const pointBg = dates.map(d =>
-              d === currentDateKey ? col.point : col.point + '66'
-            );
+            const data = seancesAvecExo.map(s => { const sr = s.series[si]; return sr ? (sr[valueKey] ?? null) : null; });
+            const pointBg     = dates.map(d => d === currentDateKey ? col.point : col.point + '66');
             const pointRadius = dates.map(d => d === currentDateKey ? 6 : 4);
-            return {
-              label: `S${si + 1}`,
-              data,
-              borderColor: col.line,
-              backgroundColor: col.fill,
-              pointBackgroundColor: pointBg,
-              pointBorderColor: pointBg,
-              pointRadius,
-              pointHoverRadius: 8,
-              tension: 0.3,
-              fill: false,
-              spanGaps: true,
-              borderWidth: 2,
-            };
+            return { label:`S${si+1}`, data, borderColor:col.line, backgroundColor:col.fill, pointBackgroundColor:pointBg, pointBorderColor:pointBg, pointRadius, pointHoverRadius:8, tension:0.3, fill:false, spanGaps:true, borderWidth:2 };
           });
 
-        const legendHTML = Array.from({ length: maxSeries }, (_, si) => {
-          const col = SERIE_COLORS[si % SERIE_COLORS.length];
-          return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#9a9590;">
-            <span style="display:inline-block;width:18px;height:2px;background:${col.line};border-radius:1px;"></span>S${si + 1}
-          </span>`;
-        }).join('');
+          const legendHTML = Array.from({ length: maxSeries }, (_, si) => {
+            const col = SERIE_COLORS[si % SERIE_COLORS.length];
+            return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#9a9590;"><span style="display:inline-block;width:18px;height:2px;background:${col.line};border-radius:1px;"></span>S${si+1}</span>`;
+          }).join('');
 
-        const safeId = nomExo.replace(/[^a-zA-Z0-9]/g, '_');
-
-        const bloc = document.createElement('div');
-        bloc.className = 'hist-chart-bloc';
-        bloc.innerHTML = `
-          <div class="hist-chart-title">${nomExo}</div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">${legendHTML}</div>
-          <div class="hist-chart-graphs">
-            <div>
-              <div class="hist-chart-label">Répétitions par série</div>
-              <div class="hist-chart-wrap"><canvas id="chart-reps-${safeId}" role="img" aria-label="Reps par série pour ${nomExo}"></canvas></div>
+          const safeId = nomExo.replace(/[^a-zA-Z0-9]/g, '_');
+          const bloc = document.createElement('div');
+          bloc.className = 'hist-chart-bloc';
+          bloc.innerHTML = `
+            <div class="hist-chart-title">${nomExo}</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">${legendHTML}</div>
+            <div class="hist-chart-graphs">
+              <div>
+                <div class="hist-chart-label">Répétitions par série</div>
+                <div class="hist-chart-wrap"><canvas id="chart-reps-${safeId}"></canvas></div>
+              </div>
+              <div>
+                <div class="hist-chart-label">Poids (kg) par série</div>
+                <div class="hist-chart-wrap"><canvas id="chart-poids-${safeId}"></canvas></div>
+              </div>
             </div>
-            <div>
-              <div class="hist-chart-label">Poids (kg) par série</div>
-              <div class="hist-chart-wrap"><canvas id="chart-poids-${safeId}" role="img" aria-label="Poids par série pour ${nomExo}"></canvas></div>
-            </div>
-          </div>
-        `;
-        container.appendChild(bloc);
+          `;
+          container.appendChild(bloc);
 
-        const commonOptions = {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#1a1a1a',
-              titleColor: '#9a9590',
-              bodyColor: '#f0ede8',
-              borderColor: '#333',
-              borderWidth: 1,
-              callbacks: {
-                title: items => labels[items[0].dataIndex],
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: '#9a9590', font: { size: 11 }, maxRotation: 45, autoSkip: dates.length > 10 },
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              border: { color: '#333' }
+          const commonOptions = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { backgroundColor:'#1a1a1a', titleColor:'#9a9590', bodyColor:'#f0ede8', borderColor:'#333', borderWidth:1, callbacks: { title: items => labels[items[0].dataIndex] } }
             },
-            y: {
-              ticks: { color: '#9a9590', font: { size: 11 } },
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              border: { color: '#333' },
-              beginAtZero: false,
+            scales: {
+              x: { ticks: { color:'#9a9590', font:{size:11}, maxRotation:45, autoSkip:dates.length>10 }, grid: { color:'rgba(255,255,255,0.05)' }, border: { color:'#333' } },
+              y: { ticks: { color:'#9a9590', font:{size:11} }, grid: { color:'rgba(255,255,255,0.05)' }, border: { color:'#333' }, beginAtZero:false }
             }
-          }
-        };
+          };
 
-        const chartReps = new Chart(
-          document.getElementById(`chart-reps-${safeId}`),
-          { type: 'line', data: { labels, datasets: makeDatasets('reps') }, options: commonOptions }
-        );
-        const chartPoids = new Chart(
-          document.getElementById(`chart-poids-${safeId}`),
-          { type: 'line', data: { labels, datasets: makeDatasets('poids') }, options: commonOptions }
-        );
-        _chartInstances.push(chartReps, chartPoids);
-      });
-    }
-    
+          _chartInstances.push(
+            new Chart(document.getElementById(`chart-reps-${safeId}`),  { type:'line', data:{ labels, datasets:makeDatasets('reps')  }, options:commonOptions }),
+            new Chart(document.getElementById(`chart-poids-${safeId}`), { type:'line', data:{ labels, datasets:makeDatasets('poids') }, options:commonOptions })
+          );
+        });
+      }
 
-    ///////////////
-
-      
-
-
-    ///////
-    
-
-    chargerHistorique();
+      chargerHistorique();
+    } // fin initApp
   </script>
 </body>
 </html>
