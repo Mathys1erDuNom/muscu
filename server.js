@@ -180,6 +180,20 @@ app.delete('/seances/:id', requireAuth, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
 });
 
+app.put('/seances/:id', requireAuth, async (req, res) => {
+  const { date, nom, exercices = [], notes = '' } = req.body;
+  if (!date || !nom) return res.status(400).json({ error: 'date et nom requis' });
+  try {
+    const r = await pool.query(
+      `UPDATE seances SET date=$1, nom=$2, exercices=$3, notes=$4
+       WHERE id=$5 AND user_id=$6 RETURNING *`,
+      [date, nom, JSON.stringify(exercices), notes, req.params.id, req.userId]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: 'Séance introuvable' });
+    res.json(r.rows[0]);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
 // ─── ROUTES NUTRITION ────────────────────────────────────────
 
 app.get('/nutrition', requireAuth, async (req, res) => {

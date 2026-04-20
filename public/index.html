@@ -236,6 +236,68 @@
     function initApp() {
       document.getElementById('date').valueAsDate = new Date();
 
+
+      ///////
+
+      let _editingId = null; // null = création, sinon id de la séance en cours d'édition
+
+      function enterEditMode(seance) {
+        _editingId = seance.id;
+        document.getElementById('date').value = seance.date.slice(0, 10);
+        document.getElementById('nom-seance').value = seance.nom;
+        document.getElementById('notes').value = seance.notes || '';
+
+        const list = document.getElementById('exercices-list');
+        list.innerHTML = '';
+        (seance.exercices || []).forEach(exo => {
+          const bloc = creerBlocExo();
+          bloc.querySelector('.exo-nom').value = exo.nom || '';
+          const seriesList = bloc.querySelector('.series-list');
+          seriesList.innerHTML = '';
+          (exo.series || []).forEach((sr, i) => {
+            const row = creerLigneSerie(i + 1);
+            if (sr.reps  != null) row.querySelector('.serie-reps').value  = sr.reps;
+            if (sr.poids != null) row.querySelector('.serie-poids').value = sr.poids;
+            seriesList.appendChild(row);
+          });
+          list.appendChild(bloc);
+        });
+
+        const btn = document.getElementById('sauvegarder');
+        btn.textContent = '💾 Mettre à jour la séance';
+        btn.classList.add('btn-edit-mode');
+
+        // Bandeau d'édition
+        let banner = document.getElementById('edit-banner');
+        if (!banner) {
+          banner = document.createElement('div');
+          banner.id = 'edit-banner';
+          banner.className = 'edit-banner';
+          document.getElementById('form-section').prepend(banner);
+        }
+        banner.innerHTML = `✏️ Modification de <strong>${seance.nom}</strong> &nbsp;<button class="btn-cancel-edit" onclick="cancelEdit()">Annuler</button>`;
+
+        document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      window.cancelEdit = function() {
+        _editingId = null;
+        document.getElementById('nom-seance').value = '';
+        document.getElementById('notes').value = '';
+        document.getElementById('date').valueAsDate = new Date();
+        const list = document.getElementById('exercices-list');
+        list.innerHTML = '';
+        list.appendChild(creerBlocExo());
+        document.getElementById('sauvegarder').textContent = 'Enregistrer la séance';
+        document.getElementById('sauvegarder').classList.remove('btn-edit-mode');
+        const banner = document.getElementById('edit-banner');
+        if (banner) banner.remove();
+        document.getElementById('status-msg').textContent = '';
+      };
+
+
+      //////
+
       // ─── CACHE HISTORIQUE ──────────────────────────────────
       let _cachedSeances = [];
 
@@ -462,6 +524,11 @@
       document.getElementById('exercices-list').appendChild(creerBlocExo());
 
       // ─── SAUVEGARDER ──────────────────────────────────────
+
+      //////
+
+
+
       document.getElementById('sauvegarder').addEventListener('click', async () => {
         const date     = document.getElementById('date').value;
         const nom      = document.getElementById('nom-seance').value.trim();
@@ -488,32 +555,32 @@
         });
 
         exercices.forEach(e => saveExoName(e.nom));
-
-        statusEl.textContent = 'Enregistrement…';
+        statusEl.textContent = _editingId ? 'Mise à jour…' : 'Enregistrement…';
         statusEl.className = '';
 
         try {
-          const res = await fetch(`${API_URL}/seances`, {
-            method: 'POST',
+          const method = _editingId ? 'PUT' : 'POST';
+          const url    = _editingId ? `${API_URL}/seances/${_editingId}` : `${API_URL}/seances`;
+          const res = await fetch(url, {
+            method,
             headers: authHeaders(),
             body: JSON.stringify({ date, nom, notes, exercices })
           });
           if (res.status === 401) { doLogout(); return; }
           if (!res.ok) throw new Error();
-          statusEl.textContent = '✓ Séance enregistrée !';
+
+          statusEl.textContent = _editingId ? '✓ Séance mise à jour !' : '✓ Séance enregistrée !';
           statusEl.className = 'msg-ok';
-          document.getElementById('nom-seance').value = '';
-          document.getElementById('notes').value = '';
-          document.getElementById('date').valueAsDate = new Date();
-          const list = document.getElementById('exercices-list');
-          list.innerHTML = '';
-          list.appendChild(creerBlocExo());
+          cancelEdit();
           chargerHistorique();
         } catch (e) {
           statusEl.textContent = '✗ Impossible de contacter le serveur.';
           statusEl.className = 'msg-error';
         }
       });
+
+
+      ///////
 
       // ─── HISTORIQUE ───────────────────────────────────────
       async function chargerHistorique() {
@@ -578,6 +645,7 @@
                 <div class="seance-header">
                   <span class="seance-nom">${s.nom}</span>
                   <span class="seance-date">${new Date(s.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}</span>
+                  <button class="btn-edit-seance btn-secondary" data-idx="${idx}" title="Modifier">✏️ Modifier</button>
                   <button class="btn-remove btn-suppr" data-id="${s.id}" title="Supprimer">✕</button>
                 </div>
                 ${s.exercices?.length ? `
@@ -601,6 +669,9 @@
               if (!confirm('Supprimer cette séance ?')) return;
               await fetch(`${API_URL}/seances/${s.id}`, { method:'DELETE', headers: authHeaders() });
               chargerHistorique();
+            });
+            detail.querySelector('.btn-edit-seance')?.addEventListener('click', () => {
+              enterEditMode(seances[idx]);
             });
             loadChartJs(() => renderChartsForSeance(s));
           }

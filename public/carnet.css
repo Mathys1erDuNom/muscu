@@ -743,3 +743,38 @@ footer {
   transition: border-color 0.15s, color 0.15s;
 }
 .btn-logout:hover { border-color: var(--rouge); color: var(--rouge); }
+
+/* ── Bandeau édition ── */
+.edit-banner {
+  background: rgba(232,255,0,0.08);
+  border: 1px solid rgba(232,255,0,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-cancel-edit {
+  background: transparent;
+  border: 1px solid #9a9590;
+  color: #9a9590;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.btn-cancel-edit:hover { border-color: #f0ede8; color: #f0ede8; }
+
+/* ── Bouton modifier dans l'historique ── */
+.btn-edit-seance {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+}
+.btn-primary.btn-edit-mode {
+  background: rgba(232,255,0,0.15);
+  border: 2px solid #e8ff00;
+  color: #e8ff00;
+}
