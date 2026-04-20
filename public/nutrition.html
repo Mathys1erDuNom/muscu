@@ -321,29 +321,27 @@
       });
 
       const depense_totale = cardio.reduce((s, a) => s + a.calories, 0);
-      const net  = calories - depense_totale;
+      const net   = calories - depense_totale;
       const poids = +document.getElementById('poids').value || null;
       const payload = { date, calories, proteines, glucides, lipides, poids, cardio, depense_totale, net, notes };
 
-      statusEl.textContent = 'Enregistrement…';
+      statusEl.textContent = _editingId ? 'Mise à jour…' : 'Enregistrement…';
       statusEl.className = '';
 
       try {
-        const res = await fetch(`${API_URL}/nutrition`, {
-          method: 'POST',
+        const method = _editingId ? 'PUT' : 'POST';
+        const url    = _editingId ? `${API_URL}/nutrition/${_editingId}` : `${API_URL}/nutrition`;
+        const res = await fetch(url, {
+          method,
           headers: authHeaders(),
           body: JSON.stringify(payload)
         });
         if (res.status === 401) { doLogout(); return; }
         if (!res.ok) throw new Error();
-        statusEl.textContent = '✓ Journée enregistrée !';
+
+        statusEl.textContent = _editingId ? '✓ Journée mise à jour !' : '✓ Journée enregistrée !';
         statusEl.className = 'msg-ok';
-        ['calories','proteines','glucides','lipides'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('notes').value   = '';
-        document.getElementById('poids').value   = '';
-        document.getElementById('cardio-list').innerHTML = '';
-        document.getElementById('date').valueAsDate = new Date();
-        majBilan();
+        cancelEdit();
         chargerHistorique();
       } catch(e) {
         statusEl.textContent = '✗ Impossible de contacter le serveur.';
@@ -413,6 +411,7 @@
             <div class="jour-item">
               <div class="jour-header">
                 <span class="jour-date">${new Date(j.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' })}</span>
+                <button class="btn-edit-jour btn-secondary" title="Modifier">✏️ Modifier</button>
                 <button class="btn-remove btn-suppr" data-id="${j.id}" title="Supprimer">✕</button>
               </div>
               <div class="macros-row">
@@ -436,6 +435,9 @@
             if (!confirm('Supprimer cette journée ?')) return;
             await fetch(`${API_URL}/nutrition/${j.id}`, { method:'DELETE', headers: authHeaders() });
             chargerHistorique();
+          });
+          detail.querySelector('.btn-edit-jour')?.addEventListener('click', () => {
+            enterEditMode(jours[idx]);
           });
         }
 
@@ -510,6 +512,69 @@
         }
       });
     }
+
+    ///////
+
+    // ─── ÉDITION ─────────────────────────────────────────────
+    let _editingId = null;
+
+    function enterEditMode(jour) {
+      _editingId = jour.id;
+      document.getElementById('date').value      = jour.date.slice(0, 10);
+      document.getElementById('calories').value  = jour.calories  || '';
+      document.getElementById('proteines').value = jour.proteines || '';
+      document.getElementById('glucides').value  = jour.glucides  || '';
+      document.getElementById('lipides').value   = jour.lipides   || '';
+      document.getElementById('poids').value     = jour.poids     || '';
+      document.getElementById('notes').value     = jour.notes     || '';
+
+      const cardioList = document.getElementById('cardio-list');
+      cardioList.innerHTML = '';
+      (jour.cardio || []).forEach(a => {
+        const row = creerLigneCardio();
+        row.querySelector('.cardio-nom').value = a.nom      || '';
+        row.querySelector('.cardio-cal').value = a.calories || '';
+        cardioList.appendChild(row);
+      });
+
+      majBilan();
+
+      const btn = document.getElementById('sauvegarder');
+      btn.textContent = '💾 Mettre à jour la journée';
+      btn.classList.add('btn-edit-mode');
+
+      let banner = document.getElementById('edit-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'edit-banner';
+        banner.className = 'edit-banner';
+        document.getElementById('form-section').prepend(banner);
+      }
+      const dateStr = new Date(jour.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'long' });
+      banner.innerHTML = `✏️ Modification du <strong>${dateStr}</strong> &nbsp;<button class="btn-cancel-edit" onclick="cancelEdit()">Annuler</button>`;
+
+      document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+      _editingId = null;
+      ['calories','proteines','glucides','lipides','poids','notes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('date').valueAsDate = new Date();
+      document.getElementById('cardio-list').innerHTML = '';
+      majBilan();
+      const btn = document.getElementById('sauvegarder');
+      btn.textContent = 'Enregistrer la journée';
+      btn.classList.remove('btn-edit-mode');
+      const banner = document.getElementById('edit-banner');
+      if (banner) banner.remove();
+      document.getElementById('status-msg').textContent = '';
+    }
+
+
+    //////
 
     chargerHistorique();
   </script>

@@ -227,6 +227,23 @@ app.delete('/nutrition/:id', requireAuth, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
 });
 
+app.put('/nutrition/:id', requireAuth, async (req, res) => {
+  const { date, calories=0, proteines=0, glucides=0, lipides=0,
+          poids=null, cardio=[], depense_totale=0, net=0, notes='' } = req.body;
+  if (!date) return res.status(400).json({ error: 'date requise' });
+  try {
+    const r = await pool.query(
+      `UPDATE nutrition SET date=$1, calories=$2, proteines=$3, glucides=$4, lipides=$5,
+       poids=$6, cardio=$7, depense_totale=$8, net=$9, notes=$10
+       WHERE id=$11 AND user_id=$12 RETURNING *`,
+      [date, calories, proteines, glucides, lipides, poids,
+       JSON.stringify(cardio), depense_totale, net, notes, req.params.id, req.userId]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: 'Journée introuvable' });
+    res.json(r.rows[0]);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'DB error' }); }
+});
+
 // ─── STATIC + PAGES ──────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -235,3 +252,4 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 initDB().then(() => {
   app.listen(PORT, () => console.log(`🚀 API sur le port ${PORT}`));
 });
+
