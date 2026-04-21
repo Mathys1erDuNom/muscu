@@ -1684,8 +1684,15 @@ footer {
     .nav-arrow {
       flex-shrink: 0;
     }
-    .header-inner > div[style] {
-      width: 100%;
+    .header-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
+  
+    /* ordre : tag → h1 → barre nav */
+    .header-inner .tag        { order: 1; }
+    .header-inner h1          { order: 2; margin-bottom: 0.3rem; }
+    .header-inner .header-nav { order: 3; }
   }
 }
