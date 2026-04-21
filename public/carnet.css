@@ -781,45 +781,28 @@ footer {
 
 
 /* ─── FIXES MOBILE ─────────────────────────────────────── */
-/* ─── FIXES MOBILE : dernier-header & seance-header ─── */
-
 @media (max-width: 560px) {
 
-  /* Bloc "dernier entraînement" : date passe sous le label */
-  .dernier-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-  .dernier-date {
-    white-space: normal;
-    font-size: 11px;
-  }
-  .dernier-nom {
-    font-size: 15px;
-  }
-
-  /* Récap séance dans l'historique : empilement propre */
+  /* Récap séance : nom + date centrés, boutons en dessous */
   .seance-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
+    align-items: center;
+    text-align: center;
+    gap: 0.3rem;
   }
   .seance-nom {
     flex: unset;
     width: 100%;
+    text-align: center;
   }
   .seance-date {
     white-space: normal;
-  }
-  .btn-suppr,
-  .btn-edit-seance {
-    margin-left: 0;
+    text-align: center;
   }
 
-  /* Les deux boutons côte à côte en bas */
-  .seance-header .btn-edit-seance,
-  .seance-header .btn-suppr {
-    display: inline-flex;
+  /* Boutons sur une ligne centrée en dessous */
+  .btn-edit-seance,
+  .btn-suppr {
+    margin-left: 0;
   }
 }
