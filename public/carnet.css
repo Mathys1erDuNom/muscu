@@ -788,26 +788,40 @@ footer {
 /* ─── FIXES MOBILE ─────────────────────────────────────── */
 @media (max-width: 560px) {
 
-  /* Récap séance : nom + date centrés, boutons en dessous */
   .seance-header {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-rows: auto auto;
     align-items: center;
-    text-align: center;
-    gap: 0.3rem;
+    gap: 0.3rem 0.5rem;
   }
+
+  /* Nom sur toute la largeur, ligne 1 */
   .seance-nom {
+    grid-column: 1 / -1;
+    grid-row: 1;
     flex: unset;
     width: 100%;
     text-align: center;
   }
+
+  /* Date ligne 2, colonne 1 */
   .seance-date {
+    grid-column: 1;
+    grid-row: 2;
     white-space: normal;
-    text-align: center;
+    text-align: left;
   }
 
-  /* Boutons sur une ligne centrée en dessous */
-  .btn-edit-seance,
+  /* Boutons ligne 2, colonnes 2 et 3 */
+  .btn-edit-seance {
+    grid-column: 2;
+    grid-row: 2;
+    margin-left: 0;
+  }
   .btn-suppr {
+    grid-column: 3;
+    grid-row: 2;
     margin-left: 0;
   }
 }
