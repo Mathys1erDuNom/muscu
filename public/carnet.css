@@ -824,4 +824,21 @@ footer {
     grid-row: 2;
     margin-left: 0;
   }
+  .date-nav {
+    flex-wrap: wrap;
+  }
+
+  #hist-picker {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
+    width: 0; /* force le shrink dans le flex */
+    background: var(--fer);
+    color: var(--texte);
+    border-color: #444;
+  }
+
+  .nav-arrow {
+    flex-shrink: 0;
+  }
 }
