@@ -88,7 +88,12 @@ main {
   color: var(--doux);
 }
 input[type="text"],
-input[type="date"],
+input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  height: auto;
+  line-height: 1.4;
+}
 input[type="number"],
 textarea {
   background: var(--fer);
