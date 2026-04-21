@@ -781,56 +781,45 @@ footer {
 
 
 /* ─── FIXES MOBILE ─────────────────────────────────────── */
+/* ─── FIXES MOBILE : dernier-header & seance-header ─── */
 
-/* Empêche le débordement global */
-html, body {
-  overflow-x: hidden;
-}
-
-/* Les inputs ne dépassent jamais leur conteneur */
-input[type="text"],
-input[type="date"],
-input[type="number"],
-textarea {
-  max-width: 100%;
-  min-width: 0; /* fix flex/grid overflow */
-}
-
-/* exo-row : empilement plus aéré sur petit écran */
 @media (max-width: 560px) {
-  .exo-row {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto;
-    row-gap: 0.6rem;
-  }
-  .exo-row .exo-nom      { grid-column: 1 / -1; }
-  .exo-row input         { min-width: 0; }
-  .exo-row .btn-remove   { grid-column: 2; justify-self: end; align-self: center; }
-}
 
-/* serie-inputs : évite que les petits inputs se compriment trop */
-@media (max-width: 480px) {
-  .serie-inputs {
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  /* Bloc "dernier entraînement" : date passe sous le label */
+  .dernier-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
-  .serie-inputs input {
-    width: 60px;
-    min-width: 0;
+  .dernier-date {
+    white-space: normal;
+    font-size: 11px;
   }
-  .autocomplete-wrap {
-    min-width: 0;
+  .dernier-nom {
+    font-size: 15px;
+  }
+
+  /* Récap séance dans l'historique : empilement propre */
+  .seance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .seance-nom {
+    flex: unset;
     width: 100%;
   }
-}
-
-/* Padding latéral réduit sur très petit écran */
-@media (max-width: 400px) {
-  main, header {
-    padding-left: 1rem;
-    padding-right: 1rem;
+  .seance-date {
+    white-space: normal;
   }
-  .card {
-    padding: 1rem;
+  .btn-suppr,
+  .btn-edit-seance {
+    margin-left: 0;
+  }
+
+  /* Les deux boutons côte à côte en bas */
+  .seance-header .btn-edit-seance,
+  .seance-header .btn-suppr {
+    display: inline-flex;
   }
 }
