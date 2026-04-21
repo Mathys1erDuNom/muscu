@@ -1628,61 +1628,64 @@ footer {
 }
 
 
-/* ─── FIXES MOBILE ─────────────────────────────────────── */
-@media (max-width: 560px) {
+  /* ─── FIXES MOBILE ─────────────────────────────────────── */
+  @media (max-width: 560px) {
 
-  .seance-header {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    grid-template-rows: auto auto;
-    align-items: center;
-    gap: 0.3rem 0.5rem;
-  }
+    .seance-header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      grid-template-rows: auto auto;
+      align-items: center;
+      gap: 0.3rem 0.5rem;
+    }
 
-  /* Nom sur toute la largeur, ligne 1 */
-  .seance-nom {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    flex: unset;
-    width: 100%;
-    text-align: center;
-  }
+    /* Nom sur toute la largeur, ligne 1 */
+    .seance-nom {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      flex: unset;
+      width: 100%;
+      text-align: center;
+    }
 
-  /* Date ligne 2, colonne 1 */
-  .seance-date {
-    grid-column: 1;
-    grid-row: 2;
-    white-space: normal;
-    text-align: left;
-  }
+    /* Date ligne 2, colonne 1 */
+    .seance-date {
+      grid-column: 1;
+      grid-row: 2;
+      white-space: normal;
+      text-align: left;
+    }
 
-  /* Boutons ligne 2, colonnes 2 et 3 */
-  .btn-edit-seance {
-    grid-column: 2;
-    grid-row: 2;
-    margin-left: 0;
-  }
-  .btn-suppr {
-    grid-column: 3;
-    grid-row: 2;
-    margin-left: 0;
-  }
-  .date-nav {
-    flex-wrap: wrap;
-  }
+    /* Boutons ligne 2, colonnes 2 et 3 */
+    .btn-edit-seance {
+      grid-column: 2;
+      grid-row: 2;
+      margin-left: 0;
+    }
+    .btn-suppr {
+      grid-column: 3;
+      grid-row: 2;
+      margin-left: 0;
+    }
+    .date-nav {
+      flex-wrap: wrap;
+    }
 
-  #hist-picker {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: 100%;
-    width: 0; /* force le shrink dans le flex */
-    background: var(--fer);
-    color: var(--texte);
-    border-color: #444;
-  }
+    #hist-picker {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 100%;
+      width: 0; /* force le shrink dans le flex */
+      background: var(--fer);
+      color: var(--texte);
+      border-color: #444;
+    }
 
-  .nav-arrow {
-    flex-shrink: 0;
+    .nav-arrow {
+      flex-shrink: 0;
+    }
+    .header-inner > div[style] {
+      width: 100%;
+    }
   }
-}
 }
